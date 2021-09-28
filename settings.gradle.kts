@@ -1,1 +1,1 @@
-rootProject.name = "se.gustavkarlsson.slack-deadline-reminder"
+rootProject.name = "slack-deadline-reminder"
