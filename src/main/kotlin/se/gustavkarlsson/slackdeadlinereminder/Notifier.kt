@@ -3,7 +3,7 @@ package se.gustavkarlsson.slackdeadlinereminder
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import se.gustavkarlsson.slackdeadlinereminder.app.Repository
+import se.gustavkarlsson.slackdeadlinereminder.app.DeadlineRepository
 import se.gustavkarlsson.slackdeadlinereminder.domain.Reminder
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -14,7 +14,7 @@ private val alertTime = LocalTime.of(9, 0)
 
 class Notifier {
 
-    fun notify(repository: Repository): Flow<Reminder> {
+    fun notify(repository: DeadlineRepository): Flow<Reminder> {
         return flow {
             while (true) {
                 val deadlines = repository.list()

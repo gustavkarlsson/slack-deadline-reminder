@@ -1,6 +1,5 @@
 package se.gustavkarlsson.slackdeadlinereminder.domain
 
-import se.gustavkarlsson.slackdeadlinereminder.app.Deadline
 import java.time.LocalDate
 
 data class Reminder(val todo: Nothing)

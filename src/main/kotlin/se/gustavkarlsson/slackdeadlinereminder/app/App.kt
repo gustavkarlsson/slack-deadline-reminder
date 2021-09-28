@@ -5,7 +5,7 @@ import se.gustavkarlsson.slackdeadlinereminder.domain.Command
 import se.gustavkarlsson.slackdeadlinereminder.domain.Reminder
 import se.gustavkarlsson.slackdeadlinereminder.domain.Response
 
-class App(private val repository: Repository) {
+class App(private val repository: DeadlineRepository) {
     suspend fun handleCommand(user: String, command: Command): Response {
         TODO()
     }

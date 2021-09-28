@@ -1,9 +1,10 @@
 package se.gustavkarlsson.slackdeadlinereminder.app
 
+import se.gustavkarlsson.slackdeadlinereminder.domain.Deadline
 import java.time.LocalDate
 import java.util.concurrent.atomic.AtomicInteger
 
-class InMemoryRepository : Repository {
+class InMemoryDeadlineRepository : DeadlineRepository {
     private val nextId = AtomicInteger(1)
     private val data = mutableListOf<Deadline>()
 
