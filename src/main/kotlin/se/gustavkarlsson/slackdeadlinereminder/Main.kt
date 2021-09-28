@@ -11,7 +11,8 @@ import java.time.Clock
 
 fun main() {
     val repo = InMemoryDeadlineRepository()
-    val app = App(repo)
+    val notifier = Notifier(repo)
+    val app = App(repo, notifier)
     val clock = Clock.systemUTC()
     val commandParser = CommandParser(clock)
     val commandName = "deadline"

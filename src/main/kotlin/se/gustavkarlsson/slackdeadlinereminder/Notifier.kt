@@ -12,12 +12,13 @@ import java.time.temporal.ChronoUnit
 
 private val alertTime = LocalTime.of(9, 0)
 
-class Notifier {
+class Notifier(private val repository: DeadlineRepository) {
 
-    fun notify(repository: DeadlineRepository): Flow<Deadline> {
+    fun notify(): Flow<Deadline> {
         return flow {
             while (true) {
                 val deadlines = repository.list()
+                // FIXME what is a reminder?
                 val reminders = listOf<Deadline>()
                 for (reminder in reminders) {
                     emit(reminder)
