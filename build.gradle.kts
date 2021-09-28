@@ -32,6 +32,7 @@ dependencies {
 
     // Slack
     implementation("com.slack.api:bolt:$bolt_version")
+    implementation("com.slack.api:bolt-jetty:$bolt_version")
     implementation("com.slack.api:bolt-ktor:$bolt_version")
 
     // Date NLP

@@ -2,6 +2,7 @@ package se.gustavkarlsson.slackdeadlinereminder
 
 import kotlinx.coroutines.runBlocking
 import se.gustavkarlsson.slackdeadlinereminder.app.App
+import se.gustavkarlsson.slackdeadlinereminder.bolt.BoltRunner
 import se.gustavkarlsson.slackdeadlinereminder.cli.CliRunner
 import se.gustavkarlsson.slackdeadlinereminder.command.CommandParser
 import se.gustavkarlsson.slackdeadlinereminder.command.CommandParserFailureFormatter
@@ -19,12 +20,13 @@ fun main() {
     val commandResponseFormatter = CommandResponseFormatter
     val commandParserFailureFormatter = CommandParserFailureFormatter
 
+    val commandName = "deadline"
     val cliRunner: Runner = CliRunner(
         app = app,
         commandParser = commandParser,
         commandResponseFormatter = commandResponseFormatter,
         commandParserFailureFormatter = commandParserFailureFormatter,
-        commandName = "deadline",
+        commandName = commandName,
         userName = "gustav",
         channelName = "deadlines",
     )
@@ -34,7 +36,14 @@ fun main() {
         commandResponseFormatter = commandResponseFormatter,
         commandParserFailureFormatter = commandParserFailureFormatter
     )
-    val runner = cliRunner
+    val boltRunner: Runner = BoltRunner(
+        app = app,
+        commandParser = commandParser,
+        commandResponseFormatter = commandResponseFormatter,
+        commandParserFailureFormatter = commandParserFailureFormatter,
+        commandName = commandName,
+    )
+    val runner = boltRunner
     runBlocking {
         runner.run()
     }
