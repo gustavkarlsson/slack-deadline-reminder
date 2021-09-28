@@ -18,11 +18,11 @@ class CommandParser {
 
     private fun parseSubcommand(split: List<String>): Command {
         val rest = split.getOrNull(1)
-        return when (val subcommand = split.firstOrNull()?.lowercase()) {
+        return when (split.firstOrNull()?.lowercase()) {
             "add" -> parseAdd(requireNotNull(rest))
             "list" -> Command.List
             "remove" -> parseRemove(requireNotNull(rest))
-            else -> error("No subcommand in '$subcommand'")
+            else -> error("No subcommand entered")
         }
     }
 
