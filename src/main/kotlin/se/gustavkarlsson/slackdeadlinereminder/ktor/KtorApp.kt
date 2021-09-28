@@ -17,13 +17,16 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import se.gustavkarlsson.slackdeadlinereminder.app.App
 import se.gustavkarlsson.slackdeadlinereminder.command.CommandParser
-import se.gustavkarlsson.slackdeadlinereminder.models.Result
+import se.gustavkarlsson.slackdeadlinereminder.command.CommandParserFailureFormatter
+import se.gustavkarlsson.slackdeadlinereminder.command.CommandResponseFormatter
 import com.slack.api.bolt.App as BoltApp
 import com.slack.api.bolt.response.Response as BoltResponse
 
 class KtorApp(
     private val app: App,
     private val commandParser: CommandParser,
+    private val commandResponseFormatter: CommandResponseFormatter,
+    private val commandParserFailureFormatter: CommandParserFailureFormatter,
 ) {
     // Expects env variables (SLACK_BOT_TOKEN, SLACK_SIGNING_SECRET)
     private val boltApp = BoltApp()
@@ -72,22 +75,12 @@ class KtorApp(
         val command = when (val parseResult = commandParser.parse(payload.text)) {
             is CommandParser.Result.Success -> parseResult.command
             is CommandParser.Result.Failure -> {
-                return BoltResponse.ok(parseResult)
+                val text = commandParserFailureFormatter.format(parseResult)
+                return BoltResponse.ok(text)
             }
         }
-        return when (val response = app.handleCommand(payload.userName, payload. channelName, command)) {
-            is Result.Deadlines -> {
-                val text = buildString {
-                    appendLine("Deadlines:")
-                    for (deadline in response.deadlines) {
-                        appendLine("${deadline.id} | ${deadline.name} (${deadline.date})")
-                    }
-                }
-                BoltResponse.ok(text)
-            }
-            is Result.RemoveFailed -> BoltResponse.ok()
-            is Result.Inserted -> BoltResponse.ok()
-            is Result.Removed -> BoltResponse.ok()
-        }
+        val result = app.handleCommand(payload.userName, payload.channelName, command)
+        val text = commandResponseFormatter.format(result)
+        return BoltResponse.ok(text)
     }
 }

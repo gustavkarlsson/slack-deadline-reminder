@@ -1,6 +1,7 @@
 package se.gustavkarlsson.slackdeadlinereminder.app
 
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 import se.gustavkarlsson.slackdeadlinereminder.models.Command
 import se.gustavkarlsson.slackdeadlinereminder.models.Deadline
 import se.gustavkarlsson.slackdeadlinereminder.models.Result
@@ -34,6 +35,6 @@ class App(private val repository: DeadlineRepository) {
     }
 
     suspend fun scheduleReminders(): Flow<Deadline> {
-        TODO()
+        return emptyFlow()
     }
 }

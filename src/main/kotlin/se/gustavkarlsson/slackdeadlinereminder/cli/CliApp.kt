@@ -5,11 +5,14 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import se.gustavkarlsson.slackdeadlinereminder.app.App
 import se.gustavkarlsson.slackdeadlinereminder.command.CommandParser
-import se.gustavkarlsson.slackdeadlinereminder.models.Result
+import se.gustavkarlsson.slackdeadlinereminder.command.CommandParserFailureFormatter
+import se.gustavkarlsson.slackdeadlinereminder.command.CommandResponseFormatter
 
 class CliApp(
     private val app: App,
     private val commandParser: CommandParser,
+    private val commandResponseFormatter: CommandResponseFormatter,
+    private val commandParserFailureFormatter: CommandParserFailureFormatter,
     private val commandName: String,
     private val userName: String,
     private val channelName: String,
@@ -39,39 +42,25 @@ class CliApp(
 
     private suspend fun processLine(line: String) {
         val split = line.split(Regex("\\s+"), limit = 2)
-        val commandPart = split.getOrNull(0)
-        val textPart = split.getOrNull(1)
+        val commandPart = split.getOrNull(0).orEmpty()
+        val textPart = split.getOrNull(1).orEmpty()
         when {
-            commandPart?.startsWith('/') == false -> return
-            commandPart?.startsWith("/$commandName") == false -> {
-                println("Unknown command: $commandPart")
+            !commandPart.startsWith('/') -> return
+            !commandPart.startsWith("/$commandName") -> {
+                println("$commandPart is not a valid command")
                 return
             }
-        }
-        if (textPart == null) {
-            println("No command text")
-            return
         }
         val command = when (val parseResult = commandParser.parse(textPart)) {
             is CommandParser.Result.Success -> parseResult.command
             is CommandParser.Result.Failure -> {
-                println("Error: $parseResult")
+                val text = commandParserFailureFormatter.format(parseResult)
+                println(text)
                 return
             }
         }
-        val text = when (val response = app.handleCommand(userName, channelName, command)) {
-            is Result.Deadlines -> {
-                buildString {
-                    appendLine("Deadlines:")
-                    for (deadline in response.deadlines) {
-                        appendLine("${deadline.id} | ${deadline.name} (${deadline.date})")
-                    }
-                }
-            }
-            is Result.RemoveFailed -> "No deadline found with id: ${response.id}"
-            is Result.Inserted -> "Added deadline on ${response.deadline.date}"
-            is Result.Removed -> "Removed deadline: '${response.deadline.name}'"
-        }
+        val result = app.handleCommand(userName, channelName, command)
+        val text = commandResponseFormatter.format(result)
         println(text)
     }
 }
