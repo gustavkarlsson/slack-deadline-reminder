@@ -15,8 +15,8 @@ class App(
         return when (command) {
             is Command.Insert -> {
                 val deadline = repository.insert(
-                    owner = userName,
-                    channel = channelName,
+                    ownerUserName = userName,
+                    channelName = channelName,
                     date = command.date,
                     name = command.name,
                 )

@@ -20,6 +20,7 @@ import se.gustavkarlsson.slackdeadlinereminder.app.App
 import se.gustavkarlsson.slackdeadlinereminder.command.CommandParser
 import se.gustavkarlsson.slackdeadlinereminder.command.CommandParserFailureFormatter
 import se.gustavkarlsson.slackdeadlinereminder.command.CommandResponseFormatter
+import se.gustavkarlsson.slackdeadlinereminder.models.Result
 import com.slack.api.bolt.App as BoltApp
 import com.slack.api.bolt.response.Response as BoltResponse
 
@@ -49,7 +50,7 @@ class KtorRunner(
             }
             launch {
                 methods.chatPostMessage { req ->
-                    req.channel(deadline.channel)
+                    req.channel(deadline.channelName)
                         .text(text)
                 }
             }
@@ -82,6 +83,18 @@ class KtorRunner(
         }
         val result = app.handleCommand(payload.userName, payload.channelName, command)
         val text = commandResponseFormatter.format(result)
-        return BoltResponse.ok(text)
+        return when (result) {
+            is Result.Deadlines, is Result.RemoveFailed -> {
+                BoltResponse.ok(text)
+            }
+            is Result.Inserted, is Result.Removed -> {
+                sendMessage(payload.channelName)
+                BoltResponse.ok()
+            }
+        }
+    }
+
+    private fun sendMessage(channelName: String) {
+        TODO("Not yet implemented")
     }
 }
