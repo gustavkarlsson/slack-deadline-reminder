@@ -15,6 +15,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import se.gustavkarlsson.slackdeadlinereminder.Runner
 import se.gustavkarlsson.slackdeadlinereminder.app.App
 import se.gustavkarlsson.slackdeadlinereminder.command.CommandParser
 import se.gustavkarlsson.slackdeadlinereminder.command.CommandParserFailureFormatter
@@ -22,18 +23,18 @@ import se.gustavkarlsson.slackdeadlinereminder.command.CommandResponseFormatter
 import com.slack.api.bolt.App as BoltApp
 import com.slack.api.bolt.response.Response as BoltResponse
 
-class KtorApp(
+class KtorRunner(
     private val app: App,
     private val commandParser: CommandParser,
     private val commandResponseFormatter: CommandResponseFormatter,
     private val commandParserFailureFormatter: CommandParserFailureFormatter,
-) {
+) : Runner {
     // Expects env variables (SLACK_BOT_TOKEN, SLACK_SIGNING_SECRET)
     private val boltApp = BoltApp()
     private val methods = boltApp.slack.methods("FIXME")
     private val slackRequestParser = SlackRequestParser(boltApp.config())
 
-    suspend fun run() = coroutineScope {
+    override suspend fun run() = coroutineScope {
         launch { scheduleReminders() }
         runServer()
     }

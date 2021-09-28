@@ -6,9 +6,10 @@ object CommandResponseFormatter {
     fun format(result: Result): String = when (result) {
         is Result.Deadlines -> {
             buildString {
-                appendLine("Deadlines:")
+                append("Deadlines:")
                 for (deadline in result.deadlines) {
-                    appendLine("${deadline.id} | ${deadline.name} (${deadline.date})")
+                    appendLine()
+                    append("${deadline.id} | ${deadline.name} (${deadline.date})")
                 }
             }
         }

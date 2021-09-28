@@ -1,14 +1,18 @@
 package se.gustavkarlsson.slackdeadlinereminder.cli
 
+import edu.stanford.nlp.util.logging.Redwood
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import se.gustavkarlsson.slackdeadlinereminder.Runner
 import se.gustavkarlsson.slackdeadlinereminder.app.App
 import se.gustavkarlsson.slackdeadlinereminder.command.CommandParser
 import se.gustavkarlsson.slackdeadlinereminder.command.CommandParserFailureFormatter
 import se.gustavkarlsson.slackdeadlinereminder.command.CommandResponseFormatter
+import java.io.OutputStream
+import java.io.PrintStream
 
-class CliApp(
+class CliRunner(
     private val app: App,
     private val commandParser: CommandParser,
     private val commandResponseFormatter: CommandResponseFormatter,
@@ -16,9 +20,10 @@ class CliApp(
     private val commandName: String,
     private val userName: String,
     private val channelName: String,
-) {
+) : Runner {
 
-    suspend fun run() = coroutineScope {
+    override suspend fun run() = coroutineScope {
+        disableNlpLogging()
         launch { scheduleReminders() }
         do {
             val line = readLine()
@@ -26,6 +31,13 @@ class CliApp(
                 processLine(line)
             }
         } while (line != null)
+    }
+
+    private fun disableNlpLogging() {
+        System.setErr(PrintStream(object : OutputStream() {
+            override fun write(b: Int) = Unit
+        }))
+        Redwood.stop()
     }
 
     private suspend fun scheduleReminders() = coroutineScope {
