@@ -1,6 +1,5 @@
 package se.gustavkarlsson.slackdeadlinereminder.ktor
 
-import arrow.core.getOrHandle
 import com.slack.api.app_backend.slash_commands.payload.SlashCommandPayload
 import com.slack.api.bolt.ktor.respond
 import com.slack.api.bolt.ktor.toBoltRequest
@@ -70,8 +69,12 @@ class KtorApp(
     }
 
     private suspend fun handleSlashCommand(payload: SlashCommandPayload): BoltResponse {
-        val parseResult = commandParser.parse(payload.text)
-        val command = parseResult.getOrHandle { throw it }
+        val command = when (val parseResult = commandParser.parse(payload.text)) {
+            is CommandParser.Result.Success -> parseResult.command
+            is CommandParser.Result.Failure -> {
+                return BoltResponse.ok(parseResult)
+            }
+        }
         return when (val response = app.handleCommand(payload.userName, command)) {
             is Response.Deadlines -> {
                 val text = buildString {

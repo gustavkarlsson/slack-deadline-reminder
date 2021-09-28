@@ -1,6 +1,5 @@
 package se.gustavkarlsson.slackdeadlinereminder.cli
 
-import arrow.core.getOrHandle
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
@@ -38,7 +37,7 @@ class CliApp(
     }
 
     private suspend fun processLine(line: String) {
-        val split = line.split(Regex("\\s+"))
+        val split = line.split(Regex("\\s+"), limit = 2)
         val commandPart = split.getOrNull(0)
         val textPart = split.getOrNull(1)
         when {
@@ -52,10 +51,12 @@ class CliApp(
             println("No command text")
             return
         }
-        val parseResult = commandParser.parse(textPart)
-        val command = parseResult.getOrHandle { e ->
-            e.printStackTrace()
-            return
+        val command = when (val parseResult = commandParser.parse(textPart)) {
+            is CommandParser.Result.Success -> parseResult.command
+            is CommandParser.Result.Failure -> {
+                println("Error: $parseResult")
+                return
+            }
         }
         val text = when (val response = app.handleCommand(user, command)) {
             is Response.Deadlines -> {

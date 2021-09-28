@@ -34,9 +34,6 @@ dependencies {
     implementation("com.slack.api:bolt:$bolt_version")
     implementation("com.slack.api:bolt-ktor:$bolt_version")
 
-    // Arrow
-    implementation("io.arrow-kt:arrow-core:1.0.0")
-
     // Date NLP
     implementation("com.zoho:hawking:0.1.4")
 
