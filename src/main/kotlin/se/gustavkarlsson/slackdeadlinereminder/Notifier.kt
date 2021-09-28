@@ -3,7 +3,6 @@ package se.gustavkarlsson.slackdeadlinereminder
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import se.gustavkarlsson.slackdeadlinereminder.models.Reminder
 import se.gustavkarlsson.slackdeadlinereminder.repo.DeadlineRepository
 import java.time.LocalDate
 import java.time.LocalDateTime

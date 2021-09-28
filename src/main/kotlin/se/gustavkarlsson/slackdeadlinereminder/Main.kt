@@ -1,9 +1,17 @@
 package se.gustavkarlsson.slackdeadlinereminder
 
-import com.slack.api.bolt.App as BoltApp
+import kotlinx.coroutines.runBlocking
+import se.gustavkarlsson.slackdeadlinereminder.app.App
+import se.gustavkarlsson.slackdeadlinereminder.command.CommandParser
+import se.gustavkarlsson.slackdeadlinereminder.ktor.KtorApp
+import se.gustavkarlsson.slackdeadlinereminder.repo.InMemoryDeadlineRepository
 
 fun main() {
-    // App expects env variables (SLACK_BOT_TOKEN, SLACK_SIGNING_SECRET)
-    val boltApp = BoltApp()
-    //serveWithKtor(app)
+    val repo = InMemoryDeadlineRepository()
+    val app = App(repo)
+    val commandParser = CommandParser()
+    val ktorApp = KtorApp(app, commandParser)
+    runBlocking {
+        ktorApp.run()
+    }
 }
