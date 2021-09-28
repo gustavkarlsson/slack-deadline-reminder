@@ -12,6 +12,7 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
@@ -30,38 +31,42 @@ class KtorApp(
     private val methods = boltApp.slack.methods("FIXME")
     private val slackRequestParser = SlackRequestParser(boltApp.config())
 
-    suspend fun run() {
-        coroutineScope {
+    suspend fun run() = coroutineScope {
+        launch { scheduleReminders() }
+        runServer()
+    }
+
+    private suspend fun scheduleReminders() = coroutineScope {
+        app.scheduleReminders().collect { deadline ->
+            val text = buildString {
+                append("Reminder: ")
+                append("'${deadline.name}'")
+                append(" is due ")
+                append(deadline.date.toString())
+            }
             launch {
-                app.scheduleReminders().collect { deadline ->
-                    val text = buildString {
-                        append("Reminder: ")
-                        append("'${deadline.name}'")
-                        append(" is due ")
-                        append(deadline.date.toString())
-                    }
-                    launch {
-                        methods.chatPostMessage { req ->
-                            req.channel(deadline.channel)
-                                .text(text)
-                        }
+                methods.chatPostMessage { req ->
+                    req.channel(deadline.channel)
+                        .text(text)
+                }
+            }
+        }
+    }
+
+    private fun CoroutineScope.runServer() {
+        embeddedServer(Netty, port = 8080, host = "0.0.0.0") {
+            routing {
+                post("/") {
+                    val boltRequest = toBoltRequest(call, slackRequestParser)
+                    if (boltRequest !is SlashCommandRequest) {
+                        call.respond(HttpStatusCode.UnprocessableEntity)
+                    } else {
+                        val boltResponse = handleSlashCommand(boltRequest.payload)
+                        respond(call, boltResponse)
                     }
                 }
             }
-            embeddedServer(Netty, port = 8080, host = "0.0.0.0") {
-                routing {
-                    post("/") {
-                        val boltRequest = toBoltRequest(call, slackRequestParser)
-                        if (boltRequest !is SlashCommandRequest) {
-                            call.respond(HttpStatusCode.UnprocessableEntity)
-                        } else {
-                            val boltResponse = handleSlashCommand(boltRequest.payload)
-                            respond(call, boltResponse)
-                        }
-                    }
-                }
-            }.start(wait = true)
-        }
+        }.start(wait = true)
     }
 
     private suspend fun handleSlashCommand(payload: SlashCommandPayload): BoltResponse {
