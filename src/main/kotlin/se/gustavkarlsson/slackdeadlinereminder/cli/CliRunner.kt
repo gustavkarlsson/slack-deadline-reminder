@@ -41,7 +41,7 @@ class CliRunner(
     }
 
     private suspend fun scheduleReminders() = coroutineScope {
-        app.scheduleReminders().collect { deadline ->
+        app.reminders.collect { deadline ->
             val text = buildString {
                 append("Reminder: ")
                 append("'${deadline.name}'")
