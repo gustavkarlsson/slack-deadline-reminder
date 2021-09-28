@@ -1,11 +1,11 @@
-package se.gustavkarlsson.slackdeadlinereminder.cli
+package se.gustavkarlsson.slackdeadlinereminder.runners
 
 import edu.stanford.nlp.util.logging.Redwood
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import se.gustavkarlsson.slackdeadlinereminder.App
 import se.gustavkarlsson.slackdeadlinereminder.Runner
-import se.gustavkarlsson.slackdeadlinereminder.app.App
 import se.gustavkarlsson.slackdeadlinereminder.command.CommandParser
 import se.gustavkarlsson.slackdeadlinereminder.command.CommandParserFailureFormatter
 import se.gustavkarlsson.slackdeadlinereminder.command.CommandResponseFormatter

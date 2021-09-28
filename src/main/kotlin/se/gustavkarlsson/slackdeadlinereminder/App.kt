@@ -1,7 +1,6 @@
-package se.gustavkarlsson.slackdeadlinereminder.app
+package se.gustavkarlsson.slackdeadlinereminder
 
 import kotlinx.coroutines.flow.Flow
-import se.gustavkarlsson.slackdeadlinereminder.Notifier
 import se.gustavkarlsson.slackdeadlinereminder.models.Command
 import se.gustavkarlsson.slackdeadlinereminder.models.Deadline
 import se.gustavkarlsson.slackdeadlinereminder.models.Result

@@ -1,40 +1,44 @@
-package se.gustavkarlsson.slackdeadlinereminder.bolt
+package se.gustavkarlsson.slackdeadlinereminder.runners
 
 import com.slack.api.app_backend.slash_commands.payload.SlashCommandPayload
-import com.slack.api.bolt.jetty.SlackAppServer
+import com.slack.api.bolt.ktor.respond
+import com.slack.api.bolt.ktor.toBoltRequest
+import com.slack.api.bolt.request.builtin.SlashCommandRequest
+import com.slack.api.bolt.util.SlackRequestParser
+import io.ktor.application.*
+import io.ktor.http.*
+import io.ktor.response.*
+import io.ktor.routing.*
+import io.ktor.server.engine.*
+import io.ktor.server.netty.*
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import se.gustavkarlsson.slackdeadlinereminder.App
 import se.gustavkarlsson.slackdeadlinereminder.Runner
-import se.gustavkarlsson.slackdeadlinereminder.app.App
 import se.gustavkarlsson.slackdeadlinereminder.command.CommandParser
 import se.gustavkarlsson.slackdeadlinereminder.command.CommandParserFailureFormatter
 import se.gustavkarlsson.slackdeadlinereminder.command.CommandResponseFormatter
 import se.gustavkarlsson.slackdeadlinereminder.models.Result
 import com.slack.api.bolt.App as BoltApp
+import com.slack.api.bolt.response.Response as BoltResponse
 
-class BoltRunner(
+class KtorRunner(
     private val app: App,
     private val commandParser: CommandParser,
     private val commandResponseFormatter: CommandResponseFormatter,
     private val commandParserFailureFormatter: CommandParserFailureFormatter,
-    private val commandName: String,
 ) : Runner {
     // Expects env variables (SLACK_BOT_TOKEN, SLACK_SIGNING_SECRET)
     private val boltApp = BoltApp()
     private val methods = boltApp.slack.methods("FIXME")
+    private val slackRequestParser = SlackRequestParser(boltApp.config())
     private val commandResponseMessages = MutableSharedFlow<OutgoingMessage>(extraBufferCapacity = 8)
 
     override suspend fun run() = coroutineScope {
         launch { scheduleReminders() }
-        boltApp.command(commandName) { req, ctx ->
-            val response = runBlocking {
-                handleSlashCommand(req.payload)
-            }
-            ctx.ack(response)
-        }
-        SlackAppServer(boltApp).start()
+        runServer()
     }
 
     private suspend fun scheduleReminders() {
@@ -59,26 +63,41 @@ class BoltRunner(
         }
     }
 
-    private suspend fun handleSlashCommand(payload: SlashCommandPayload): String {
+    private fun CoroutineScope.runServer() {
+        embeddedServer(Netty, port = 8080, host = "0.0.0.0") {
+            routing {
+                post("/") {
+                    val boltRequest = toBoltRequest(call, slackRequestParser)
+                    if (boltRequest !is SlashCommandRequest) {
+                        call.respond(HttpStatusCode.UnprocessableEntity)
+                    } else {
+                        val boltResponse = handleSlashCommand(boltRequest.payload)
+                        respond(call, boltResponse)
+                    }
+                }
+            }
+        }.start(wait = true)
+    }
+
+    private suspend fun handleSlashCommand(payload: SlashCommandPayload): BoltResponse {
         val command = when (val parseResult = commandParser.parse(payload.text)) {
             is CommandParser.Result.Success -> parseResult.command
             is CommandParser.Result.Failure -> {
-                return commandParserFailureFormatter.format(parseResult)
+                val text = commandParserFailureFormatter.format(parseResult)
+                return BoltResponse.ok(text)
             }
         }
         val result = app.handleCommand(payload.userName, payload.channelName, command)
         val text = commandResponseFormatter.format(result)
         return when (result) {
             is Result.Deadlines, is Result.RemoveFailed -> {
-                text
+                BoltResponse.ok(text)
             }
             is Result.Inserted, is Result.Removed -> {
                 val message = OutgoingMessage(payload.channelName, text)
                 commandResponseMessages.emit(message)
-                text
+                BoltResponse.ok()
             }
         }
     }
 }
-
-private data class OutgoingMessage(val channelName: String, val text: String)
