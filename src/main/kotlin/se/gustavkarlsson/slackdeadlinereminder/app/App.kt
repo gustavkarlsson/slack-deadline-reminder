@@ -9,7 +9,7 @@ import se.gustavkarlsson.slackdeadlinereminder.repo.DeadlineRepository
 
 class App(
     private val repository: DeadlineRepository,
-    private val notifier: Notifier,
+    notifier: Notifier,
 ) {
     suspend fun handleCommand(userName: String, channelName: String, command: Command): Result {
         return when (command) {
@@ -37,7 +37,5 @@ class App(
         }
     }
 
-    fun scheduleReminders(): Flow<Deadline> {
-        return notifier.notify()
-    }
+    val reminders: Flow<Deadline> = notifier.notify()
 }

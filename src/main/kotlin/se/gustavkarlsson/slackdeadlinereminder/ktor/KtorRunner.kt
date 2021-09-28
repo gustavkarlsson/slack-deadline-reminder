@@ -13,7 +13,7 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import se.gustavkarlsson.slackdeadlinereminder.Runner
 import se.gustavkarlsson.slackdeadlinereminder.app.App
@@ -34,24 +34,30 @@ class KtorRunner(
     private val boltApp = BoltApp()
     private val methods = boltApp.slack.methods("FIXME")
     private val slackRequestParser = SlackRequestParser(boltApp.config())
+    private val commandResponseMessages = MutableSharedFlow<OutgoingMessage>(extraBufferCapacity = 8)
 
     override suspend fun run() = coroutineScope {
         launch { scheduleReminders() }
         runServer()
     }
 
-    private suspend fun scheduleReminders() = coroutineScope {
-        app.scheduleReminders().collect { deadline ->
+    private suspend fun scheduleReminders() {
+        val reminderMessages: Flow<OutgoingMessage> = app.reminders.map { deadline ->
             val text = buildString {
                 append("Reminder: ")
                 append("'${deadline.name}'")
                 append(" is due ")
                 append(deadline.date.toString())
             }
-            launch {
-                methods.chatPostMessage { req ->
-                    req.channel(deadline.channelName)
-                        .text(text)
+            OutgoingMessage(deadline.channelName, text)
+        }
+        coroutineScope {
+            merge(reminderMessages, commandResponseMessages).collect { message ->
+                launch {
+                    methods.chatPostMessage { req ->
+                        req.channel(message.channelName)
+                            .text(message.text)
+                    }
                 }
             }
         }
@@ -88,13 +94,12 @@ class KtorRunner(
                 BoltResponse.ok(text)
             }
             is Result.Inserted, is Result.Removed -> {
-                sendMessage(payload.channelName)
+                val message = OutgoingMessage(payload.channelName, text)
+                commandResponseMessages.emit(message)
                 BoltResponse.ok()
             }
         }
     }
-
-    private fun sendMessage(channelName: String) {
-        TODO("Not yet implemented")
-    }
 }
+
+private data class OutgoingMessage(val channelName: String, val text: String)
