@@ -1,6 +1,6 @@
-package se.gustavkarlsson.slackdeadlinereminder.app
+package se.gustavkarlsson.slackdeadlinereminder.repo
 
-import se.gustavkarlsson.slackdeadlinereminder.domain.Deadline
+import se.gustavkarlsson.slackdeadlinereminder.models.Deadline
 import java.time.LocalDate
 
 interface DeadlineRepository {

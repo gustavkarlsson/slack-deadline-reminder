@@ -1,4 +1,4 @@
-package se.gustavkarlsson.slackdeadlinereminder.domain
+package se.gustavkarlsson.slackdeadlinereminder.models
 
 import java.time.LocalDate
 

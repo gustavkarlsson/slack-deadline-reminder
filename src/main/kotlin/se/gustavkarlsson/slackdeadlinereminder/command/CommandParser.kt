@@ -4,11 +4,11 @@ import arrow.core.Either
 import com.zoho.hawking.HawkingTimeParser
 import com.zoho.hawking.datetimeparser.configuration.HawkingConfiguration
 import com.zoho.hawking.language.english.model.ParserOutput
-import se.gustavkarlsson.slackdeadlinereminder.domain.Command
+import se.gustavkarlsson.slackdeadlinereminder.models.Command
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.util.Date
+import java.util.*
 
 class CommandParser {
     fun parse(text: String): Either<ParseException, Command> {
