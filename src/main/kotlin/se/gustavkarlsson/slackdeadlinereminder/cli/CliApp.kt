@@ -5,13 +5,14 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import se.gustavkarlsson.slackdeadlinereminder.app.App
 import se.gustavkarlsson.slackdeadlinereminder.command.CommandParser
-import se.gustavkarlsson.slackdeadlinereminder.models.Response
+import se.gustavkarlsson.slackdeadlinereminder.models.Result
 
 class CliApp(
     private val app: App,
     private val commandParser: CommandParser,
     private val commandName: String,
-    private val user: String,
+    private val userName: String,
+    private val channelName: String,
 ) {
 
     suspend fun run() = coroutineScope {
@@ -58,8 +59,8 @@ class CliApp(
                 return
             }
         }
-        val text = when (val response = app.handleCommand(user, command)) {
-            is Response.Deadlines -> {
+        val text = when (val response = app.handleCommand(userName, channelName, command)) {
+            is Result.Deadlines -> {
                 buildString {
                     appendLine("Deadlines:")
                     for (deadline in response.deadlines) {
@@ -67,9 +68,9 @@ class CliApp(
                     }
                 }
             }
-            is Response.Error -> response.message
-            is Response.Inserted -> "Inserted: ${response.deadline}"
-            Response.Removed -> "Removed"
+            is Result.RemoveFailed -> "No deadline found with id: ${response.id}"
+            is Result.Inserted -> "Added deadline on ${response.deadline.date}"
+            is Result.Removed -> "Removed deadline: '${response.deadline.name}'"
         }
         println(text)
     }

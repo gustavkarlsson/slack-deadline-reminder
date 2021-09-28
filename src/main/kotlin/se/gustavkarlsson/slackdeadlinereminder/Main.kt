@@ -12,7 +12,13 @@ fun main() {
     val app = App(repo)
     val clock = Clock.systemUTC()
     val commandParser = CommandParser(clock)
-    val cliApp = CliApp(app, commandParser, "deadline", "gustav")
+    val cliApp = CliApp(
+        app = app,
+        commandParser = commandParser,
+        commandName = "deadline",
+        userName = "gustav",
+        channelName = "deadlines",
+    )
     runBlocking {
         cliApp.run()
     }

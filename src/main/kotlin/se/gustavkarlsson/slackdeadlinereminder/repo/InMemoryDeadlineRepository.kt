@@ -19,7 +19,11 @@ class InMemoryDeadlineRepository : DeadlineRepository {
         return data.toList()
     }
 
-    override suspend fun remove(id: Int): Boolean {
-        return data.removeIf { it.id == id }
+    override suspend fun remove(id: Int): Deadline? {
+        val deadline = data.find { it.id == id }
+        if (deadline != null) {
+            data.remove(deadline)
+        }
+        return deadline
     }
 }

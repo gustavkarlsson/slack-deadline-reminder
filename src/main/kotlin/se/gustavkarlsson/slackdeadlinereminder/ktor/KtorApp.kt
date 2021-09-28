@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import se.gustavkarlsson.slackdeadlinereminder.app.App
 import se.gustavkarlsson.slackdeadlinereminder.command.CommandParser
-import se.gustavkarlsson.slackdeadlinereminder.models.Response
+import se.gustavkarlsson.slackdeadlinereminder.models.Result
 import com.slack.api.bolt.App as BoltApp
 import com.slack.api.bolt.response.Response as BoltResponse
 
@@ -75,8 +75,8 @@ class KtorApp(
                 return BoltResponse.ok(parseResult)
             }
         }
-        return when (val response = app.handleCommand(payload.userName, command)) {
-            is Response.Deadlines -> {
+        return when (val response = app.handleCommand(payload.userName, payload. channelName, command)) {
+            is Result.Deadlines -> {
                 val text = buildString {
                     appendLine("Deadlines:")
                     for (deadline in response.deadlines) {
@@ -85,9 +85,9 @@ class KtorApp(
                 }
                 BoltResponse.ok(text)
             }
-            is Response.Error -> BoltResponse.error(HttpStatusCode.UnprocessableEntity.value)
-            is Response.Inserted -> BoltResponse.ok()
-            Response.Removed -> BoltResponse.ok()
+            is Result.RemoveFailed -> BoltResponse.ok()
+            is Result.Inserted -> BoltResponse.ok()
+            is Result.Removed -> BoltResponse.ok()
         }
     }
 }
