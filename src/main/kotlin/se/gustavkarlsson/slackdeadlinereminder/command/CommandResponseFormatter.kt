@@ -14,7 +14,7 @@ object CommandResponseFormatter {
             }
         }
         is Result.RemoveFailed -> "No deadline found with id: ${result.id}"
-        is Result.Inserted -> "Added deadline on ${result.deadline.date}"
+        is Result.Inserted -> "Added deadline: '${result.deadline.name}' on ${result.deadline.date}"
         is Result.Removed -> "Removed deadline: '${result.deadline.name}'"
     }
 }
