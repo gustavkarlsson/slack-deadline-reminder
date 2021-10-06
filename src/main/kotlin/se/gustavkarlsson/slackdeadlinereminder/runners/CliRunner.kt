@@ -26,6 +26,7 @@ class CliRunner(
         disableNlpLogging()
         launch { scheduleReminders() }
         do {
+            print("> ")
             val line = readLine()
             if (line != null) {
                 processLine(line)
