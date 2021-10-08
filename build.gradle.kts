@@ -28,7 +28,8 @@ dependencies {
     implementation("io.ktor:ktor-server-netty:$ktor_version")
 
     // Logging
-    implementation("ch.qos.logback:logback-classic:$logback_version")
+    implementation("io.github.microutils:kotlin-logging:2.0.11")
+    runtimeOnly("ch.qos.logback:logback-classic:$logback_version")
 
     // Slack
     implementation("com.slack.api:bolt:$bolt_version")

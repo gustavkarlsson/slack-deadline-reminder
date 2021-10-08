@@ -1,6 +1,7 @@
 package se.gustavkarlsson.slackdeadlinereminder.runners
 
 import com.slack.api.app_backend.slash_commands.payload.SlashCommandPayload
+import com.slack.api.bolt.AppConfig
 import com.slack.api.bolt.ktor.respond
 import com.slack.api.bolt.ktor.toBoltRequest
 import com.slack.api.bolt.request.builtin.SlashCommandRequest
@@ -29,10 +30,19 @@ class KtorRunner(
     private val commandParser: CommandParser,
     private val commandResponseFormatter: CommandResponseFormatter,
     private val commandParserFailureFormatter: CommandParserFailureFormatter,
+    private val address: String,
+    private val port: Int,
+    slackBotToken: String,
+    slackSigningSecret: String,
 ) : Runner {
-    // Expects env variables (SLACK_BOT_TOKEN, SLACK_SIGNING_SECRET)
-    private val boltApp = BoltApp()
-    private val methods = boltApp.slack.methods("FIXME")
+    private val boltApp = let {
+        val appConfig = AppConfig.builder()
+            .singleTeamBotToken(slackBotToken)
+            .signingSecret(slackSigningSecret)
+            .build()
+        BoltApp(appConfig)
+    }
+    private val methods = boltApp.slack.methods(slackBotToken)
     private val slackRequestParser = SlackRequestParser(boltApp.config())
     private val commandResponseMessages = MutableSharedFlow<OutgoingMessage>(extraBufferCapacity = 8)
 
@@ -64,7 +74,7 @@ class KtorRunner(
     }
 
     private fun CoroutineScope.runServer() {
-        embeddedServer(Netty, port = 8080, host = "0.0.0.0") {
+        embeddedServer(Netty, port = port, host = address) {
             routing {
                 post("/") {
                     val boltRequest = toBoltRequest(call, slackRequestParser)

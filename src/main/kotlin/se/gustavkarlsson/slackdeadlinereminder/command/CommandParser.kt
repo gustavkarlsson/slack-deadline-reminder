@@ -3,6 +3,8 @@ package se.gustavkarlsson.slackdeadlinereminder.command
 import com.zoho.hawking.HawkingTimeParser
 import com.zoho.hawking.datetimeparser.configuration.HawkingConfiguration
 import com.zoho.hawking.language.english.model.ParserOutput
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import se.gustavkarlsson.slackdeadlinereminder.models.Command
 import java.time.Clock
 import java.time.LocalDate
@@ -13,14 +15,14 @@ import java.util.*
 class CommandParser(
     private val clock: Clock,
 ) {
-    fun parse(text: String): Result {
+    suspend fun parse(text: String): Result {
         val split = text.trim().split(Regex("\\s+"), limit = 2)
         val subcommand = split.getOrNull(0)
         val argument = split.getOrNull(1)
         return parseSubcommand(subcommand, argument)
     }
 
-    private fun parseSubcommand(subcommand: String?, argument: String?): Result {
+    private suspend fun parseSubcommand(subcommand: String?, argument: String?): Result {
         return when (subcommand?.lowercase()) {
             "add" -> {
                 if (argument == null) {
@@ -41,7 +43,7 @@ class CommandParser(
         }
     }
 
-    private fun parseAdd(text: String): Result {
+    private suspend fun parseAdd(text: String): Result {
         val match = findTime(text) ?: return Result.Failure.MissingTime
         val date = getDate(match) ?: return Result.Failure.MissingTime
         val replacementString = "\u0000"
@@ -58,11 +60,13 @@ class CommandParser(
         return Result.Success(command)
     }
 
-    private fun findTime(text: String): ParserOutput? {
+    private suspend fun findTime(text: String): ParserOutput? {
         val parser = HawkingTimeParser()
         val config = HawkingConfiguration()
         val now = clock.instant()
-        val datesFound = parser.parse(text, Date.from(now), config, "eng")
+        val datesFound = withContext(Dispatchers.IO) {
+            parser.parse(text, Date.from(now), config, "eng")
+        }
         return datesFound.parserOutputs.firstOrNull()
     }
 
