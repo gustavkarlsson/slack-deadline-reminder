@@ -11,7 +11,6 @@ import se.gustavkarlsson.slackdeadlinereminder.models.ChannelId
 import se.gustavkarlsson.slackdeadlinereminder.models.MessageContext
 import se.gustavkarlsson.slackdeadlinereminder.models.UserId
 import se.gustavkarlsson.slackdeadlinereminder.repo.InMemoryDeadlineRepository
-import se.gustavkarlsson.slackdeadlinereminder.runners.BoltRunner
 import se.gustavkarlsson.slackdeadlinereminder.runners.CliRunner
 import se.gustavkarlsson.slackdeadlinereminder.runners.KtorRunner
 import java.time.Clock
@@ -61,13 +60,6 @@ fun main() {
         config.port,
         config.slackBotToken,
         config.slackSigningSecret,
-    )
-    val boltRunner: Runner = BoltRunner(
-        app = app,
-        commandParser = commandParser,
-        commandResponseFormatter = commandResponseFormatter,
-        commandParserFailureFormatter = commandParserFailureFormatter,
-        commandName = config.commandName,
     )
     val runner = cliRunner
     runBlocking {
