@@ -10,9 +10,10 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.temporal.ChronoUnit
 
-private val alertTime = LocalTime.of(9, 0)
-
-class Notifier(private val repository: DeadlineRepository) {
+class Notifier(
+    private val repository: DeadlineRepository,
+    private val notificationTime: LocalTime,
+) {
 
     val notifications: Flow<Deadline> = flow {
         while (true) {
@@ -30,11 +31,11 @@ class Notifier(private val repository: DeadlineRepository) {
         val now = LocalDateTime.now()
         val today = LocalDate.now()
         val tomorrow = today.plusDays(1)
-        val todaysAlertTime = today.atTime(alertTime)
+        val todaysAlertTime = today.atTime(notificationTime)
         val nextAlert = if (now < todaysAlertTime) {
             todaysAlertTime
         } else {
-            tomorrow.atTime(alertTime)
+            tomorrow.atTime(notificationTime)
         }
         return now.until(nextAlert, ChronoUnit.MILLIS)
     }

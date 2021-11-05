@@ -2,6 +2,7 @@ package se.gustavkarlsson.slackdeadlinereminder.runners
 
 import com.slack.api.app_backend.slash_commands.payload.SlashCommandPayload
 import com.slack.api.bolt.jetty.SlackAppServer
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -38,6 +39,7 @@ class BoltRunner(
         SlackAppServer(boltApp).start()
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     private suspend fun scheduleReminders() {
         val reminderMessages: Flow<OutgoingMessage> = app.reminders.map { deadline ->
             val text = buildString {

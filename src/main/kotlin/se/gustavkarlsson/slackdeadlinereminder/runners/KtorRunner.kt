@@ -13,6 +13,7 @@ import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -52,6 +53,7 @@ class KtorRunner(
         runServer()
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     private suspend fun scheduleReminders() {
         val reminderMessages: Flow<OutgoingMessage> = app.reminders.map { deadline ->
             val text = buildString {

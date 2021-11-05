@@ -15,6 +15,7 @@ import se.gustavkarlsson.slackdeadlinereminder.runners.BoltRunner
 import se.gustavkarlsson.slackdeadlinereminder.runners.CliRunner
 import se.gustavkarlsson.slackdeadlinereminder.runners.KtorRunner
 import java.time.Clock
+import java.time.LocalTime
 import kotlin.system.exitProcess
 
 private val logger = KotlinLogging.logger {}
@@ -31,8 +32,9 @@ fun main() {
             exitProcess(2)
         }
     }
+    val notificationTime = LocalTime.of(9, 0)
     val repo = InMemoryDeadlineRepository()
-    val notifier = Notifier(repo)
+    val notifier = Notifier(repo, notificationTime)
     val app = App(repo, notifier)
     val clock = Clock.systemUTC()
     val commandParser = CommandParser(clock)
