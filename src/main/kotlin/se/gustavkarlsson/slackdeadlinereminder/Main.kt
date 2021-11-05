@@ -8,8 +8,12 @@ import se.gustavkarlsson.slackdeadlinereminder.command.CommandParser
 import se.gustavkarlsson.slackdeadlinereminder.command.CommandParserFailureFormatter
 import se.gustavkarlsson.slackdeadlinereminder.command.CommandResponseFormatter
 import se.gustavkarlsson.slackdeadlinereminder.models.ChannelId
+import se.gustavkarlsson.slackdeadlinereminder.models.DatabaseConfig
 import se.gustavkarlsson.slackdeadlinereminder.models.MessageContext
 import se.gustavkarlsson.slackdeadlinereminder.models.UserId
+import se.gustavkarlsson.slackdeadlinereminder.repo.ExposedDbRepository
+import se.gustavkarlsson.slackdeadlinereminder.repo.InMemoryDeadlineRepository
+import se.gustavkarlsson.slackdeadlinereminder.repo.JsonFileRepository
 import se.gustavkarlsson.slackdeadlinereminder.runners.CliRunner
 import se.gustavkarlsson.slackdeadlinereminder.runners.KtorRunner
 import java.time.Clock
@@ -29,8 +33,13 @@ fun main() {
             exitProcess(2)
         }
     }
-    val notifier = Notifier(config.repository, config.reminderTime, config.reminderDurations)
-    val app = App(config.repository, notifier)
+    val repository = when (val databaseConfig = config.databaseConfig) {
+        DatabaseConfig.InMemory -> InMemoryDeadlineRepository()
+        is DatabaseConfig.JsonFile -> JsonFileRepository(databaseConfig.file, databaseConfig.prettyPrint)
+        is DatabaseConfig.Postgres -> ExposedDbRepository(databaseConfig)
+    }
+    val notifier = Notifier(repository, config.reminderTime, config.reminderDurations)
+    val app = App(repository, notifier)
     val clock = Clock.system(config.zoneId)
     val commandParser = CommandParser(clock)
     val commandResponseFormatter = CommandResponseFormatter

@@ -1,6 +1,4 @@
-import se.gustavkarlsson.slackdeadlinereminder.repo.DeadlineRepository
-import se.gustavkarlsson.slackdeadlinereminder.repo.InMemoryDeadlineRepository
-import se.gustavkarlsson.slackdeadlinereminder.repo.JsonFileRepository
+import se.gustavkarlsson.slackdeadlinereminder.models.DatabaseConfig
 import java.nio.file.InvalidPathException
 import java.nio.file.Paths
 import java.time.DateTimeException
@@ -22,6 +20,9 @@ object ConfigLoader {
         ZONE_ID("zone_id"),
         DB_JSON_FILE("db_json_file"),
         DB_JSON_PRETTY("db_json_pretty"),
+        DB_POSTGRES_ADDRESS("db_postgres_address"),
+        DB_POSTGRES_USER("db_postgres_user"),
+        DB_POSTGRES_PASSWORD("db_postgres_password"),
     }
 
     fun loadConfig(env: Map<String, String>): Result = try {
@@ -34,7 +35,17 @@ object ConfigLoader {
         val reminderTime = env[ConfigKey.REMINDER_TIME, "09:00"].validateReminderTime()
         val zoneId = env[ConfigKey.ZONE_ID, "UTC"].validateZoneId()
         val prettyJson = env[ConfigKey.DB_JSON_PRETTY, "false"].validateBoolean()
-        val repository = env[ConfigKey.DB_JSON_FILE, ""].validateRepository(prettyJson)
+        val jsonFileDbConfig = env[ConfigKey.DB_JSON_FILE, ""].validateJsonFileConfig(prettyJson)
+        val postgresDbAddress = env[ConfigKey.DB_POSTGRES_ADDRESS, ""].ifBlank { null }
+        val postgresDbUser = env[ConfigKey.DB_POSTGRES_USER, ""].ifBlank { null }
+        val postgresDbPassword = env[ConfigKey.DB_POSTGRES_PASSWORD, ""].ifBlank { null }
+
+        val databaseConfig = when {
+            postgresDbAddress != null && postgresDbUser != null && postgresDbPassword != null ->
+                DatabaseConfig.Postgres(postgresDbAddress, postgresDbUser, postgresDbPassword)
+            jsonFileDbConfig != null -> jsonFileDbConfig
+            else -> DatabaseConfig.InMemory
+        }
 
         ApplicationConfig(
             slackBotToken = slackBotToken,
@@ -45,7 +56,7 @@ object ConfigLoader {
             reminderDurations = reminderDays,
             reminderTime = reminderTime,
             zoneId = zoneId,
-            repository = repository,
+            databaseConfig = databaseConfig,
         )
     } catch (e: ValidationException) {
         InvalidConfigurationValue(e.message)
@@ -137,16 +148,16 @@ object ConfigLoader {
         }
     }
 
-    private fun String.validateRepository(prettyJson: Boolean): DeadlineRepository {
+    private fun String.validateJsonFileConfig(prettyJson: Boolean): DatabaseConfig.JsonFile? {
         return if (isBlank()) {
-            InMemoryDeadlineRepository()
+            null
         } else {
             val file = try {
                 Paths.get(this)
             } catch (e: InvalidPathException) {
                 failValidation("Invalid database path", e)
             }
-            JsonFileRepository(file, prettyJson)
+            DatabaseConfig.JsonFile(file, prettyJson)
         }
     }
 
@@ -177,5 +188,5 @@ data class ApplicationConfig(
     val reminderDurations: Set<Duration>,
     val reminderTime: LocalTime,
     val zoneId: ZoneId,
-    val repository: DeadlineRepository,
+    val databaseConfig: DatabaseConfig,
 ) : ConfigLoader.Result

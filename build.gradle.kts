@@ -4,6 +4,8 @@ val kotlin_version: String by project
 val coroutines_version: String by project
 val logback_version: String by project
 val kotlinx_serialization_version: String by project
+val exposed_version: String by project
+val postgres_version: String by project
 
 plugins {
     application
@@ -43,6 +45,12 @@ dependencies {
 
     // Serialization
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinx_serialization_version")
+
+    // Database
+    implementation("org.jetbrains.exposed:exposed-core:$exposed_version")
+    implementation("org.jetbrains.exposed:exposed-jdbc:$exposed_version")
+    implementation("org.jetbrains.exposed:exposed-java-time:$exposed_version")
+    implementation("org.postgresql:postgresql:$postgres_version")
 
     // Testing
     testImplementation("io.ktor:ktor-server-tests:$ktor_version")
