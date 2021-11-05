@@ -10,9 +10,9 @@ class InMemoryDeadlineRepository : DeadlineRepository {
     private val nextId = AtomicInteger(1)
     private val data = mutableListOf<Deadline>()
 
-    override suspend fun insert(ownerId: UserId, channelId: ChannelId, date: LocalDate, name: String): Deadline {
+    override suspend fun insert(ownerId: UserId, channelId: ChannelId, date: LocalDate, text: String): Deadline {
         val id = nextId.getAndIncrement()
-        val deadline = Deadline(id, ownerId, channelId, date, name)
+        val deadline = Deadline(id, ownerId, channelId, date, text)
         data += deadline
         return deadline
     }

@@ -18,7 +18,7 @@ class App(
                     ownerId = messageContext.userId,
                     channelId = messageContext.channelId,
                     date = command.date,
-                    name = command.text,
+                    text = command.text,
                 )
                 Result.Inserted(deadline)
             }
