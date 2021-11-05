@@ -1,3 +1,8 @@
+import se.gustavkarlsson.slackdeadlinereminder.repo.DeadlineRepository
+import se.gustavkarlsson.slackdeadlinereminder.repo.InMemoryDeadlineRepository
+import se.gustavkarlsson.slackdeadlinereminder.repo.JsonFileRepository
+import java.nio.file.InvalidPathException
+import java.nio.file.Paths
 import java.time.DateTimeException
 import java.time.Duration
 import java.time.LocalTime
@@ -15,6 +20,8 @@ object ConfigLoader {
         REMINDER_DAYS("reminder_days"),
         REMINDER_TIME("reminder_time"),
         ZONE_ID("zone_id"),
+        DB_JSON_FILE("db_json_file"),
+        DB_JSON_PRETTY("db_json_pretty"),
     }
 
     fun loadConfig(env: Map<String, String>): Result = try {
@@ -26,6 +33,8 @@ object ConfigLoader {
         val reminderDays = env[ConfigKey.REMINDER_DAYS, "1, 3, 7"].validateReminderDays()
         val reminderTime = env[ConfigKey.REMINDER_TIME, "09:00"].validateReminderTime()
         val zoneId = env[ConfigKey.ZONE_ID, "UTC"].validateZoneId()
+        val prettyJson = env[ConfigKey.DB_JSON_PRETTY, "false"].validateBoolean()
+        val repository = env[ConfigKey.DB_JSON_FILE, ""].validateRepository(prettyJson)
 
         ApplicationConfig(
             slackBotToken = slackBotToken,
@@ -35,7 +44,8 @@ object ConfigLoader {
             address = address,
             reminderDurations = reminderDays,
             reminderTime = reminderTime,
-            zoneId = zoneId
+            zoneId = zoneId,
+            repository = repository,
         )
     } catch (e: ValidationException) {
         InvalidConfigurationValue(e.message)
@@ -77,11 +87,11 @@ object ConfigLoader {
     }
 
     private fun String.validateReminderDays(): Set<Duration> {
-        if (isNullOrBlank()) failValidation("Invalid reminder days '$this'")
+        if (isBlank()) failValidation("Invalid reminder days '$this'")
         val reminderDays = split(',')
             .map {
                 try {
-                    it.toLong()
+                    it.trim().toLong()
                 } catch (t: Throwable) {
                     failValidation("Invalid day '$it'", t)
                 }
@@ -94,7 +104,7 @@ object ConfigLoader {
     }
 
     private fun String.validateReminderTime(): LocalTime {
-        return if (isNullOrBlank()) {
+        return if (isBlank()) {
             failValidation("Reminder time cannot be null or blank")
         } else {
             try {
@@ -106,7 +116,7 @@ object ConfigLoader {
     }
 
     private fun String.validateZoneId(): ZoneId {
-        return if (isNullOrBlank()) {
+        return if (isBlank()) {
             failValidation("Zone ID cannot be null or blank")
         } else {
             try {
@@ -116,6 +126,27 @@ object ConfigLoader {
             } catch (e: ZoneRulesException) {
                 failValidation("Unknown Zone ID", e)
             }
+        }
+    }
+
+    private fun String.validateBoolean(): Boolean {
+        return when (trim().lowercase()) {
+            "true", "yes" -> true
+            "false", "no" -> false
+            else -> failValidation("Unknown boolean value: '$this'")
+        }
+    }
+
+    private fun String.validateRepository(prettyJson: Boolean): DeadlineRepository {
+        return if (isBlank()) {
+            InMemoryDeadlineRepository()
+        } else {
+            val file = try {
+                Paths.get(this)
+            } catch (e: InvalidPathException) {
+                failValidation("Invalid database path", e)
+            }
+            JsonFileRepository(file, prettyJson)
         }
     }
 
@@ -146,4 +177,5 @@ data class ApplicationConfig(
     val reminderDurations: Set<Duration>,
     val reminderTime: LocalTime,
     val zoneId: ZoneId,
+    val repository: DeadlineRepository,
 ) : ConfigLoader.Result

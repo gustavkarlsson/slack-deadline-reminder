@@ -3,10 +3,12 @@ val bolt_version: String by project
 val kotlin_version: String by project
 val coroutines_version: String by project
 val logback_version: String by project
+val kotlinx_serialization_version: String by project
 
 plugins {
     application
     kotlin("jvm") version "1.5.31"
+    kotlin("plugin.serialization") version "1.5.31"
 }
 
 group = "se.gustavkarlsson.slack-deadline-reminder"
@@ -38,6 +40,9 @@ dependencies {
 
     // Date NLP
     implementation("com.zoho:hawking:0.1.4")
+
+    // Serialization
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinx_serialization_version")
 
     // Testing
     testImplementation("io.ktor:ktor-server-tests:$ktor_version")
