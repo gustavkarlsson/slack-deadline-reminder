@@ -14,7 +14,6 @@ import se.gustavkarlsson.slackdeadlinereminder.repo.InMemoryDeadlineRepository
 import se.gustavkarlsson.slackdeadlinereminder.runners.CliRunner
 import se.gustavkarlsson.slackdeadlinereminder.runners.KtorRunner
 import java.time.Clock
-import java.time.LocalTime
 import kotlin.system.exitProcess
 
 private val logger = KotlinLogging.logger {}
@@ -31,11 +30,10 @@ fun main() {
             exitProcess(2)
         }
     }
-    val notificationTime = LocalTime.of(9, 0)
     val repo = InMemoryDeadlineRepository()
-    val notifier = Notifier(repo, notificationTime)
+    val notifier = Notifier(repo, config.reminderTime, config.reminderDurations)
     val app = App(repo, notifier)
-    val clock = Clock.systemUTC()
+    val clock = Clock.systemUTC() // FIXME make timezone configurable
     val commandParser = CommandParser(clock)
     val commandResponseFormatter = CommandResponseFormatter
     val commandParserFailureFormatter = CommandParserFailureFormatter
@@ -56,10 +54,10 @@ fun main() {
         commandParser = commandParser,
         commandResponseFormatter = commandResponseFormatter,
         commandParserFailureFormatter = commandParserFailureFormatter,
-        config.address,
-        config.port,
-        config.slackBotToken,
-        config.slackSigningSecret,
+        address = config.address,
+        port = config.port,
+        slackBotToken = config.slackBotToken,
+        slackSigningSecret = config.slackSigningSecret,
     )
     val runner = cliRunner
     runBlocking {

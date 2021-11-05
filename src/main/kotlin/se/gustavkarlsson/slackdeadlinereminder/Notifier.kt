@@ -5,14 +5,17 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import se.gustavkarlsson.slackdeadlinereminder.models.Deadline
 import se.gustavkarlsson.slackdeadlinereminder.repo.DeadlineRepository
+import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.temporal.ChronoUnit
 
+// FIXME Rename
 class Notifier(
-    private val repository: DeadlineRepository,
-    private val notificationTime: LocalTime,
+    repository: DeadlineRepository,
+    reminderTime: LocalTime,
+    reminderDurations: Set<Duration>,
 ) {
 
     val notifications: Flow<Deadline> = flow {
@@ -23,19 +26,19 @@ class Notifier(
             for (reminder in reminders) {
                 emit(reminder)
             }
-            delay(getDelayUntilNextAlertMillis())
+            delay(getDelayUntil(reminderTime))
         }
     }
 
-    private fun getDelayUntilNextAlertMillis(): Long {
+    private fun getDelayUntil(reminderTime: LocalTime): Long {
         val now = LocalDateTime.now()
         val today = LocalDate.now()
         val tomorrow = today.plusDays(1)
-        val todaysAlertTime = today.atTime(notificationTime)
+        val todaysAlertTime = today.atTime(reminderTime)
         val nextAlert = if (now < todaysAlertTime) {
             todaysAlertTime
         } else {
-            tomorrow.atTime(notificationTime)
+            tomorrow.atTime(reminderTime)
         }
         return now.until(nextAlert, ChronoUnit.MILLIS)
     }
