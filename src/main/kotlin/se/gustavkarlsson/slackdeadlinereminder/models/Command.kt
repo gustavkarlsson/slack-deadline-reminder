@@ -5,7 +5,7 @@ import java.time.LocalDate
 sealed interface Command {
     data class Insert(
         val date: LocalDate,
-        val name: String, // FIXME rename to text?
+        val text: String,
     ) : Command
 
     object List : Command

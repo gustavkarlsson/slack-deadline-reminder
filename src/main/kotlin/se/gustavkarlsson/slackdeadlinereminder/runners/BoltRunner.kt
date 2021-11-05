@@ -42,7 +42,7 @@ class BoltRunner(
         val reminderMessages: Flow<OutgoingMessage> = app.reminders.map { deadline ->
             val text = buildString {
                 append("Reminder: ")
-                append("'${deadline.name}'")
+                append("'${deadline.text}'")
                 append(" is due ")
                 append(deadline.date.toString())
             }
@@ -71,15 +71,13 @@ class BoltRunner(
         val context = payload.toMessageContext()
         val result = app.handleCommand(context, command)
         val text = commandResponseFormatter.format(result)
-        return when (result) {
-            is Result.Deadlines, is Result.RemoveFailed -> {
-                text
-            }
+        when (result) {
+            is Result.Deadlines, is Result.RemoveFailed -> Unit
             is Result.Inserted, is Result.Removed -> {
                 val message = OutgoingMessage(context.channelId, text)
                 commandResponseMessages.emit(message)
-                text
             }
         }
+        return text
     }
 }

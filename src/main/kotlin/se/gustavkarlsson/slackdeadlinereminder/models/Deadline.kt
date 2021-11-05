@@ -7,5 +7,5 @@ data class Deadline(
     val ownerId: UserId,
     val channelId: ChannelId,
     val date: LocalDate,
-    val name: String, // FIXME Rename to text
+    val text: String,
 )

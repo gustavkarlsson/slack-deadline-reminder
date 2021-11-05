@@ -9,12 +9,12 @@ object CommandResponseFormatter {
                 append("Deadlines:")
                 for (deadline in result.deadlines) {
                     appendLine()
-                    append("${deadline.id} | ${deadline.name} (${deadline.date})")
+                    append("${deadline.id} | ${deadline.text} (${deadline.date})")
                 }
             }
         }
         is Result.RemoveFailed -> "No deadline found with id: ${result.id}"
-        is Result.Inserted -> "Added deadline: '${result.deadline.name}' on ${result.deadline.date}"
-        is Result.Removed -> "Removed deadline: '${result.deadline.name}'"
+        is Result.Inserted -> "Added deadline: '${result.deadline.text}' on ${result.deadline.date}"
+        is Result.Removed -> "Removed deadline: '${result.deadline.text}'"
     }
 }

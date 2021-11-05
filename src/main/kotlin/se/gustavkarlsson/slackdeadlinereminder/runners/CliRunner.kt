@@ -45,7 +45,7 @@ class CliRunner(
         app.reminders.collect { deadline ->
             val text = buildString {
                 append("Reminder: ")
-                append("'${deadline.name}'")
+                append("'${deadline.text}'")
                 append(" is due ")
                 append(deadline.date.toString())
             }
