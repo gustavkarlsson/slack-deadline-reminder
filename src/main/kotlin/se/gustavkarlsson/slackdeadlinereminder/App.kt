@@ -37,5 +37,5 @@ class App(
         }
     }
 
-    val reminders: Flow<Deadline> = notifier.notify()
+    val reminders: Flow<Deadline> = notifier.notifications
 }

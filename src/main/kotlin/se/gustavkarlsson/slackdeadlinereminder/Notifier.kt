@@ -14,17 +14,15 @@ private val alertTime = LocalTime.of(9, 0)
 
 class Notifier(private val repository: DeadlineRepository) {
 
-    fun notify(): Flow<Deadline> {
-        return flow {
-            while (true) {
-                val deadlines = repository.list()
-                // FIXME what is a reminder?
-                val reminders = listOf<Deadline>()
-                for (reminder in reminders) {
-                    emit(reminder)
-                }
-                delay(getDelayUntilNextAlertMillis())
+    val notifications: Flow<Deadline> = flow {
+        while (true) {
+            val deadlines = repository.list()
+            // FIXME what is a reminder?
+            val reminders = listOf<Deadline>()
+            for (reminder in reminders) {
+                emit(reminder)
             }
+            delay(getDelayUntilNextAlertMillis())
         }
     }
 
