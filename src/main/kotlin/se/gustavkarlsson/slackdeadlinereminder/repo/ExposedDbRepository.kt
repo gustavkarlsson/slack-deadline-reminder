@@ -11,6 +11,7 @@ import se.gustavkarlsson.slackdeadlinereminder.models.DatabaseConfig
 import se.gustavkarlsson.slackdeadlinereminder.models.Deadline
 import se.gustavkarlsson.slackdeadlinereminder.models.UserId
 import java.time.LocalDate
+import java.util.concurrent.atomic.AtomicBoolean
 
 private object DatabaseConnections {
     private val connections = hashMapOf<DatabaseConfig, Database>()
@@ -34,6 +35,8 @@ class ExposedDbRepository(
     private val config: DatabaseConfig.Postgres,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : DeadlineRepository {
+
+    private val shouldTryCreateTable = AtomicBoolean(true)
 
     override suspend fun insert(ownerId: UserId, channelId: ChannelId, date: LocalDate, text: String): Deadline {
         return doTransaction {
@@ -71,8 +74,11 @@ class ExposedDbRepository(
     private suspend fun <T> doTransaction(block: Transaction.() -> T): T {
         val database = DatabaseConnections[config]
         return newSuspendedTransaction(dispatcher, database) {
-            addLogger(StdOutSqlLogger) // FIXME remove
-            SchemaUtils.create(DeadlinesTable) // FIXME only once?
+            if (shouldTryCreateTable.getAndSet(false)) {
+                if (DeadlinesTable.exists()) {
+                    SchemaUtils.create(DeadlinesTable)
+                }
+            }
             block()
         }
     }
