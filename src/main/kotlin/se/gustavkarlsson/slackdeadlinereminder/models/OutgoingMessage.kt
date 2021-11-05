@@ -1,3 +1,3 @@
-package se.gustavkarlsson.slackdeadlinereminder.runners
+package se.gustavkarlsson.slackdeadlinereminder.models
 
 data class OutgoingMessage(val channelName: String, val text: String)
