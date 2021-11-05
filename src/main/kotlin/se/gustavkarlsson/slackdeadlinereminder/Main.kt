@@ -33,7 +33,7 @@ fun main() {
     val repo = InMemoryDeadlineRepository()
     val notifier = Notifier(repo, config.reminderTime, config.reminderDurations)
     val app = App(repo, notifier)
-    val clock = Clock.systemUTC() // FIXME make timezone configurable
+    val clock = Clock.system(config.zoneId)
     val commandParser = CommandParser(clock)
     val commandResponseFormatter = CommandResponseFormatter
     val commandParserFailureFormatter = CommandParserFailureFormatter

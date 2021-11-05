@@ -1,6 +1,9 @@
+import java.time.DateTimeException
 import java.time.Duration
 import java.time.LocalTime
+import java.time.ZoneId
 import java.time.format.DateTimeParseException
+import java.time.zone.ZoneRulesException
 
 object ConfigLoader {
     enum class ConfigKey(val key: String) {
@@ -11,6 +14,7 @@ object ConfigLoader {
         ADDRESS("address"),
         REMINDER_DAYS("reminder_days"),
         REMINDER_TIME("reminder_time"),
+        ZONE_ID("zone_id"),
     }
 
     fun loadConfig(env: Map<String, String>): Result = try {
@@ -21,8 +25,18 @@ object ConfigLoader {
         val address = env[ConfigKey.ADDRESS, "0.0.0.0"].validateAddress()
         val reminderDays = env[ConfigKey.REMINDER_DAYS, "1, 3, 7"].validateReminderDays()
         val reminderTime = env[ConfigKey.REMINDER_TIME, "09:00"].validateReminderTime()
+        val zoneId = env[ConfigKey.ZONE_ID, "UTC"].validateZoneId()
 
-        ApplicationConfig(slackBotToken, slackSigningSecret, commandName, port, address, reminderDays, reminderTime)
+        ApplicationConfig(
+            slackBotToken = slackBotToken,
+            slackSigningSecret = slackSigningSecret,
+            commandName = commandName,
+            port = port,
+            address = address,
+            reminderDurations = reminderDays,
+            reminderTime = reminderTime,
+            zoneId = zoneId
+        )
     } catch (e: ValidationException) {
         InvalidConfigurationValue(e.message)
     } catch (e: MissingConfigurationValueException) {
@@ -91,6 +105,20 @@ object ConfigLoader {
         }
     }
 
+    private fun String.validateZoneId(): ZoneId {
+        return if (isNullOrBlank()) {
+            failValidation("Zone ID cannot be null or blank")
+        } else {
+            try {
+                ZoneId.of(this)
+            } catch (e: DateTimeException) {
+                failValidation("Invalid Zone ID format", e)
+            } catch (e: ZoneRulesException) {
+                failValidation("Unknown Zone ID", e)
+            }
+        }
+    }
+
     private class ValidationException(override val message: String, cause: Throwable?) : Throwable(message, cause)
 
     private fun failValidation(message: String, cause: Throwable? = null): Nothing {
@@ -117,4 +145,5 @@ data class ApplicationConfig(
     val address: String,
     val reminderDurations: Set<Duration>,
     val reminderTime: LocalTime,
+    val zoneId: ZoneId,
 ) : ConfigLoader.Result
