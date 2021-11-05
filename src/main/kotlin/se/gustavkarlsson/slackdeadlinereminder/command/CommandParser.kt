@@ -44,15 +44,17 @@ class CommandParser(
     private fun parseAdd(text: String): Result {
         val match = findTime(text) ?: return Result.Failure.MissingTime
         val date = getDate(match) ?: return Result.Failure.MissingTime
-        val replacementString = "\u0000"
+        val replacementSymbol = "\u0000"
         val name = match.recognizerOutputs.fold(text) { acc, output ->
-            val replacement = replacementString.repeat(output.text.length)
+            val replacement = replacementSymbol.repeat(output.text.length)
             val startIndex = match.parserStartIndex + output.recognizerStartIndex
             val endIndex = match.parserStartIndex + output.recognizerEndIndex
-            acc.take(startIndex) + replacement + acc.drop(endIndex)
+            val prefix = acc.take(startIndex)
+            val suffix = acc.drop(endIndex)
+            prefix + replacement + suffix
         }
-            .replace(replacementString, "")
-            .replace(Regex("\\s+"), " ")
+            .replace(replacementSymbol, "")
+            .replace(Regex("\\s+"), " ") // TODO Can we only replace whitespace around replacements?
             .trim()
         val command = Command.Insert(date, name)
         return Result.Success(command)
@@ -75,12 +77,7 @@ class CommandParser(
     }
 
     private fun parseRemove(text: String): Result {
-        val words = text.split(Regex("\\s++"))
-        val id = words
-            .mapNotNull { word ->
-                word.toIntOrNull()
-            }
-            .firstOrNull()
+        val id = text.trim().toIntOrNull()
         return if (id != null) {
             Result.Success(Command.Remove(id))
         } else {
