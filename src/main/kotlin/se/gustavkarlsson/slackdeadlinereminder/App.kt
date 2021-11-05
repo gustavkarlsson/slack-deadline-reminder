@@ -3,6 +3,7 @@ package se.gustavkarlsson.slackdeadlinereminder
 import kotlinx.coroutines.flow.Flow
 import se.gustavkarlsson.slackdeadlinereminder.models.Command
 import se.gustavkarlsson.slackdeadlinereminder.models.Deadline
+import se.gustavkarlsson.slackdeadlinereminder.models.MessageContext
 import se.gustavkarlsson.slackdeadlinereminder.models.Result
 import se.gustavkarlsson.slackdeadlinereminder.repo.DeadlineRepository
 
@@ -10,12 +11,12 @@ class App(
     private val repository: DeadlineRepository,
     notifier: Notifier,
 ) {
-    suspend fun handleCommand(userName: String, channelName: String, command: Command): Result {
+    suspend fun handleCommand(messageContext: MessageContext, command: Command): Result {
         return when (command) {
             is Command.Insert -> {
                 val deadline = repository.insert(
-                    ownerUserName = userName,
-                    channelName = channelName,
+                    ownerId = messageContext.userId,
+                    channelId = messageContext.channelId,
                     date = command.date,
                     name = command.name,
                 )

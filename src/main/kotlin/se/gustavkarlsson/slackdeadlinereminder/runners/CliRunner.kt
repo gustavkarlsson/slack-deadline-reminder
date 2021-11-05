@@ -9,6 +9,7 @@ import se.gustavkarlsson.slackdeadlinereminder.Runner
 import se.gustavkarlsson.slackdeadlinereminder.command.CommandParser
 import se.gustavkarlsson.slackdeadlinereminder.command.CommandParserFailureFormatter
 import se.gustavkarlsson.slackdeadlinereminder.command.CommandResponseFormatter
+import se.gustavkarlsson.slackdeadlinereminder.models.MessageContext
 import java.io.OutputStream
 import java.io.PrintStream
 
@@ -18,8 +19,7 @@ class CliRunner(
     private val commandResponseFormatter: CommandResponseFormatter,
     private val commandParserFailureFormatter: CommandParserFailureFormatter,
     private val commandName: String,
-    private val userName: String,
-    private val channelName: String,
+    private val messageContext: MessageContext,
 ) : Runner {
 
     override suspend fun run() = coroutineScope {
@@ -72,7 +72,7 @@ class CliRunner(
                 return
             }
         }
-        val result = app.handleCommand(userName, channelName, command)
+        val result = app.handleCommand(messageContext, command)
         val text = commandResponseFormatter.format(result)
         println(text)
     }

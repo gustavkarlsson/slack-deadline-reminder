@@ -4,8 +4,8 @@ import java.time.LocalDate
 
 data class Deadline(
     val id: Int,
-    val owner: String,
-    val channelName: String,
+    val ownerId: UserId,
+    val channelId: ChannelId,
     val date: LocalDate,
-    val name: String,
+    val name: String, // FIXME Rename to text
 )

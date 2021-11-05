@@ -7,6 +7,9 @@ import mu.KotlinLogging
 import se.gustavkarlsson.slackdeadlinereminder.command.CommandParser
 import se.gustavkarlsson.slackdeadlinereminder.command.CommandParserFailureFormatter
 import se.gustavkarlsson.slackdeadlinereminder.command.CommandResponseFormatter
+import se.gustavkarlsson.slackdeadlinereminder.models.ChannelId
+import se.gustavkarlsson.slackdeadlinereminder.models.MessageContext
+import se.gustavkarlsson.slackdeadlinereminder.models.UserId
 import se.gustavkarlsson.slackdeadlinereminder.repo.InMemoryDeadlineRepository
 import se.gustavkarlsson.slackdeadlinereminder.runners.BoltRunner
 import se.gustavkarlsson.slackdeadlinereminder.runners.CliRunner
@@ -42,8 +45,10 @@ fun main() {
         commandResponseFormatter = commandResponseFormatter,
         commandParserFailureFormatter = commandParserFailureFormatter,
         commandName = config.commandName,
-        userName = "gustav",
-        channelName = "deadlines",
+        messageContext = MessageContext(
+            userId = UserId("usr_guk"),
+            channelId = ChannelId("chn_deadlines"),
+        ),
     )
     val ktorRunner: Runner = KtorRunner(
         app = app,

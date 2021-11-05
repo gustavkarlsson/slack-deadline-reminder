@@ -46,13 +46,14 @@ class BoltRunner(
                 append(" is due ")
                 append(deadline.date.toString())
             }
-            OutgoingMessage(deadline.channelName, text)
+            OutgoingMessage(deadline.channelId, text)
         }
         coroutineScope {
             merge(reminderMessages, commandResponseMessages).collect { message ->
                 launch {
+                    // FIXME handle exceptions
                     methods.chatPostMessage { req ->
-                        req.channel(message.channelName)
+                        req.channel(message.channelId.value)
                             .text(message.text)
                     }
                 }
@@ -67,14 +68,15 @@ class BoltRunner(
                 return commandParserFailureFormatter.format(parseResult)
             }
         }
-        val result = app.handleCommand(payload.userName, payload.channelName, command)
+        val context = payload.toMessageContext()
+        val result = app.handleCommand(context, command)
         val text = commandResponseFormatter.format(result)
         return when (result) {
             is Result.Deadlines, is Result.RemoveFailed -> {
                 text
             }
             is Result.Inserted, is Result.Removed -> {
-                val message = OutgoingMessage(payload.channelName, text)
+                val message = OutgoingMessage(context.channelId, text)
                 commandResponseMessages.emit(message)
                 text
             }
