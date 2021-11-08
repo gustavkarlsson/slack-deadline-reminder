@@ -39,7 +39,7 @@ fun main() {
         is DatabaseConfig.Postgres -> ExposedDbRepository(databaseConfig)
     }
     val notifier = Notifier(repository, config.reminderTime, config.reminderDurations)
-    val app = App(repository, notifier)
+    val app = CommandProcessor(repository)
     val clock = Clock.system(config.zoneId)
     val nlpDateParser = HawkingNlpDateParser(clock)
     val commandParser = CommandParser(nlpDateParser)
@@ -48,6 +48,7 @@ fun main() {
 
     val cliRunner: Runner = CliRunner(
         app = app,
+        notifier = notifier,
         commandParser = commandParser,
         commandResponseFormatter = commandResponseFormatter,
         commandParserFailureFormatter = commandParserFailureFormatter,
@@ -59,6 +60,7 @@ fun main() {
     )
     val ktorRunner: Runner = KtorRunner(
         app = app,
+        notifier = notifier,
         commandParser = commandParser,
         commandResponseFormatter = commandResponseFormatter,
         commandParserFailureFormatter = commandParserFailureFormatter,

@@ -17,18 +17,19 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import se.gustavkarlsson.slackdeadlinereminder.App
+import se.gustavkarlsson.slackdeadlinereminder.CommandProcessor
+import se.gustavkarlsson.slackdeadlinereminder.Notifier
 import se.gustavkarlsson.slackdeadlinereminder.Runner
 import se.gustavkarlsson.slackdeadlinereminder.command.CommandParser
 import se.gustavkarlsson.slackdeadlinereminder.command.CommandParserFailureFormatter
 import se.gustavkarlsson.slackdeadlinereminder.command.CommandResponseFormatter
 import se.gustavkarlsson.slackdeadlinereminder.models.OutgoingMessage
-import se.gustavkarlsson.slackdeadlinereminder.models.Result
 import com.slack.api.bolt.App as BoltApp
 import com.slack.api.bolt.response.Response as BoltResponse
 
 class KtorRunner(
-    private val app: App,
+    private val app: CommandProcessor,
+    private val notifier: Notifier,
     private val commandParser: CommandParser,
     private val commandResponseFormatter: CommandResponseFormatter,
     private val commandParserFailureFormatter: CommandParserFailureFormatter,
@@ -55,7 +56,7 @@ class KtorRunner(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private suspend fun scheduleReminders() {
-        val reminderMessages: Flow<OutgoingMessage> = app.reminders.map { deadline ->
+        val reminderMessages: Flow<OutgoingMessage> = notifier.notifications.map { deadline ->
             val text = buildString {
                 append("Reminder: ")
                 append("'${deadline.text}'")
@@ -102,11 +103,11 @@ class KtorRunner(
             }
         }
         val context = payload.toMessageContext()
-        val result = app.handleCommand(context, command)
+        val result = app.process(context, command)
         val text = commandResponseFormatter.format(result)
         when (result) {
-            is Result.Deadlines, is Result.RemoveFailed -> Unit
-            is Result.Inserted, is Result.Removed -> {
+            is CommandProcessor.Deadlines, is CommandProcessor.RemoveFailed -> Unit
+            is CommandProcessor.Inserted, is CommandProcessor.Removed -> {
                 val message = OutgoingMessage(context.channelId, text)
                 commandResponseMessages.emit(message)
             }

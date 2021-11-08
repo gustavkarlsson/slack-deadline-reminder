@@ -4,7 +4,8 @@ import edu.stanford.nlp.util.logging.Redwood
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
-import se.gustavkarlsson.slackdeadlinereminder.App
+import se.gustavkarlsson.slackdeadlinereminder.CommandProcessor
+import se.gustavkarlsson.slackdeadlinereminder.Notifier
 import se.gustavkarlsson.slackdeadlinereminder.Runner
 import se.gustavkarlsson.slackdeadlinereminder.command.CommandParser
 import se.gustavkarlsson.slackdeadlinereminder.command.CommandParserFailureFormatter
@@ -14,7 +15,8 @@ import java.io.OutputStream
 import java.io.PrintStream
 
 class CliRunner(
-    private val app: App,
+    private val app: CommandProcessor,
+    private val notifier: Notifier,
     private val commandParser: CommandParser,
     private val commandResponseFormatter: CommandResponseFormatter,
     private val commandParserFailureFormatter: CommandParserFailureFormatter,
@@ -42,7 +44,7 @@ class CliRunner(
     }
 
     private suspend fun scheduleReminders() = coroutineScope {
-        app.reminders.collect { deadline ->
+        notifier.notifications.collect { deadline ->
             val text = buildString {
                 append("Reminder: ")
                 append("'${deadline.text}'")
@@ -72,7 +74,7 @@ class CliRunner(
                 return
             }
         }
-        val result = app.handleCommand(messageContext, command)
+        val result = app.process(messageContext, command)
         val text = commandResponseFormatter.format(result)
         println(text)
     }

@@ -1,18 +1,12 @@
 package se.gustavkarlsson.slackdeadlinereminder
 
-import kotlinx.coroutines.flow.Flow
 import se.gustavkarlsson.slackdeadlinereminder.models.Command
 import se.gustavkarlsson.slackdeadlinereminder.models.Deadline
 import se.gustavkarlsson.slackdeadlinereminder.models.MessageContext
-import se.gustavkarlsson.slackdeadlinereminder.models.Result
 import se.gustavkarlsson.slackdeadlinereminder.repo.DeadlineRepository
 
-class App(
-    private val repository: DeadlineRepository,
-    notifier: Notifier,
-) {
-    // FIXME extract command processor and move Result into it
-    suspend fun handleCommand(messageContext: MessageContext, command: Command): Result {
+class CommandProcessor(private val repository: DeadlineRepository) {
+    suspend fun process(messageContext: MessageContext, command: Command): Result {
         return when (command) {
             is Command.Insert -> {
                 val deadline = repository.insert(
@@ -21,22 +15,26 @@ class App(
                     date = command.date,
                     text = command.text,
                 )
-                Result.Inserted(deadline)
+                Inserted(deadline)
             }
             Command.List -> {
                 val deadlines = repository.list()
-                Result.Deadlines(deadlines)
+                Deadlines(deadlines)
             }
             is Command.Remove -> {
                 val removed = repository.remove(command.id)
                 if (removed != null) {
-                    Result.Removed(removed)
+                    Removed(removed)
                 } else {
-                    Result.RemoveFailed(command.id)
+                    RemoveFailed(command.id)
                 }
             }
         }
     }
 
-    val reminders: Flow<Deadline> = notifier.notifications
+    sealed interface Result
+    data class Inserted(val deadline: Deadline) : Result
+    data class Deadlines(val deadlines: List<Deadline>) : Result
+    data class Removed(val deadline: Deadline) : Result
+    data class RemoveFailed(val id: Int) : Result
 }

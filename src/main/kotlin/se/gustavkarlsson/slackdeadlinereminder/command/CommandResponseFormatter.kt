@@ -1,10 +1,10 @@
 package se.gustavkarlsson.slackdeadlinereminder.command
 
-import se.gustavkarlsson.slackdeadlinereminder.models.Result
+import se.gustavkarlsson.slackdeadlinereminder.CommandProcessor
 
 object CommandResponseFormatter {
-    fun format(result: Result): String = when (result) {
-        is Result.Deadlines -> {
+    fun format(result: CommandProcessor.Result): String = when (result) {
+        is CommandProcessor.Deadlines -> {
             buildString {
                 append("Deadlines:")
                 for (deadline in result.deadlines) {
@@ -13,8 +13,8 @@ object CommandResponseFormatter {
                 }
             }
         }
-        is Result.RemoveFailed -> "No deadline found with id: ${result.id}"
-        is Result.Inserted -> "Added deadline: '${result.deadline.text}' on ${result.deadline.date}"
-        is Result.Removed -> "Removed deadline: '${result.deadline.text}'"
+        is CommandProcessor.RemoveFailed -> "No deadline found with id: ${result.id}"
+        is CommandProcessor.Inserted -> "Added deadline: '${result.deadline.text}' on ${result.deadline.date}"
+        is CommandProcessor.Removed -> "Removed deadline: '${result.deadline.text}'"
     }
 }
