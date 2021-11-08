@@ -12,7 +12,6 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.*
@@ -49,13 +48,13 @@ class KtorRunner(
     private val slackRequestParser = SlackRequestParser(boltApp.config())
     private val commandResponseMessages = MutableSharedFlow<OutgoingMessage>(extraBufferCapacity = 8)
 
-    override suspend fun run() = coroutineScope {
+    override suspend fun run(): Nothing = coroutineScope {
         launch { scheduleReminders() }
         runServer()
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private suspend fun scheduleReminders() {
+    private suspend fun scheduleReminders(): Nothing {
         val reminderMessages: Flow<OutgoingMessage> = notifier.notifications.map { deadline ->
             val text = buildString {
                 append("Reminder: ")
@@ -76,10 +75,11 @@ class KtorRunner(
                 }
             }
         }
+        error("Collection finished unexpectedly")
     }
 
-    private fun CoroutineScope.runServer() {
-        embeddedServer(Netty, port = port, host = address) {
+    private fun runServer(): Nothing {
+        val server = embeddedServer(Netty, port = port, host = address) {
             routing {
                 post("/") {
                     val boltRequest = toBoltRequest(call, slackRequestParser)
@@ -91,7 +91,9 @@ class KtorRunner(
                     }
                 }
             }
-        }.start(wait = true)
+        }
+        server.start(wait = true)
+        error("Server stopped unexpectedly")
     }
 
     private suspend fun handleSlashCommand(payload: SlashCommandPayload): BoltResponse {
