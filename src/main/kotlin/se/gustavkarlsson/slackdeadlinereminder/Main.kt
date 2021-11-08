@@ -11,6 +11,7 @@ import se.gustavkarlsson.slackdeadlinereminder.models.ChannelId
 import se.gustavkarlsson.slackdeadlinereminder.models.DatabaseConfig
 import se.gustavkarlsson.slackdeadlinereminder.models.MessageContext
 import se.gustavkarlsson.slackdeadlinereminder.models.UserId
+import se.gustavkarlsson.slackdeadlinereminder.nlp.HawkingNlpDateParser
 import se.gustavkarlsson.slackdeadlinereminder.repo.ExposedDbRepository
 import se.gustavkarlsson.slackdeadlinereminder.repo.InMemoryDeadlineRepository
 import se.gustavkarlsson.slackdeadlinereminder.repo.JsonFileRepository
@@ -41,7 +42,8 @@ fun main() {
     val notifier = Notifier(repository, config.reminderTime, config.reminderDurations)
     val app = App(repository, notifier)
     val clock = Clock.system(config.zoneId)
-    val commandParser = CommandParser(clock)
+    val nlpDateParser = HawkingNlpDateParser(clock)
+    val commandParser = CommandParser(nlpDateParser)
     val commandResponseFormatter = CommandResponseFormatter
     val commandParserFailureFormatter = CommandParserFailureFormatter
 
