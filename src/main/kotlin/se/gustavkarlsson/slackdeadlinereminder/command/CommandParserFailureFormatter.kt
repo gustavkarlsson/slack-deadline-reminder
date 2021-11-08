@@ -1,5 +1,6 @@
 package se.gustavkarlsson.slackdeadlinereminder.command
 
+// FIXME extract interface
 object CommandParserFailureFormatter {
     fun format(result: CommandParser.Failure): String = when (result) {
         CommandParser.Failure.MissingId -> "Missing ID"

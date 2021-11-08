@@ -5,7 +5,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import se.gustavkarlsson.slackdeadlinereminder.CommandProcessor
-import se.gustavkarlsson.slackdeadlinereminder.Notifier
+import se.gustavkarlsson.slackdeadlinereminder.ReminderSource
 import se.gustavkarlsson.slackdeadlinereminder.Runner
 import se.gustavkarlsson.slackdeadlinereminder.command.CommandParser
 import se.gustavkarlsson.slackdeadlinereminder.command.CommandParserFailureFormatter
@@ -16,7 +16,7 @@ import java.io.PrintStream
 
 class CliRunner(
     private val app: CommandProcessor,
-    private val notifier: Notifier,
+    private val reminderSource: ReminderSource,
     private val commandParser: CommandParser,
     private val commandResponseFormatter: CommandResponseFormatter,
     private val commandParserFailureFormatter: CommandParserFailureFormatter,
@@ -44,14 +44,8 @@ class CliRunner(
     }
 
     private suspend fun scheduleReminders() = coroutineScope {
-        notifier.notifications.collect { deadline ->
-            val text = buildString {
-                append("Reminder: ")
-                append("'${deadline.text}'")
-                append(" is due ")
-                append(deadline.date.toString())
-            }
-            println(text)
+        reminderSource.reminders.collect { message ->
+            println(message.text)
         }
     }
 

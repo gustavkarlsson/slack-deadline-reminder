@@ -2,6 +2,7 @@ package se.gustavkarlsson.slackdeadlinereminder.command
 
 import se.gustavkarlsson.slackdeadlinereminder.CommandProcessor
 
+// FIXME extract interface
 object CommandResponseFormatter {
     fun format(result: CommandProcessor.Result): String = when (result) {
         is CommandProcessor.Deadlines -> {

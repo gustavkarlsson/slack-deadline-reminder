@@ -38,7 +38,7 @@ fun main() {
         is DatabaseConfig.JsonFile -> JsonFileRepository(databaseConfig.file, databaseConfig.prettyPrint)
         is DatabaseConfig.Postgres -> ExposedDbRepository(databaseConfig)
     }
-    val notifier = Notifier(repository, config.reminderTime, config.reminderDurations)
+    val reminderSource = ReminderSource(repository, config.reminderTime, config.reminderDurations)
     val app = CommandProcessor(repository)
     val clock = Clock.system(config.zoneId)
     val nlpDateParser = HawkingNlpDateParser(clock)
@@ -48,7 +48,7 @@ fun main() {
 
     val cliRunner: Runner = CliRunner(
         app = app,
-        notifier = notifier,
+        reminderSource = reminderSource,
         commandParser = commandParser,
         commandResponseFormatter = commandResponseFormatter,
         commandParserFailureFormatter = commandParserFailureFormatter,
@@ -60,7 +60,7 @@ fun main() {
     )
     val ktorRunner: Runner = KtorRunner(
         app = app,
-        notifier = notifier,
+        reminderSource = reminderSource,
         commandParser = commandParser,
         commandResponseFormatter = commandResponseFormatter,
         commandParserFailureFormatter = commandParserFailureFormatter,

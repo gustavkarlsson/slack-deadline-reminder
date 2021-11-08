@@ -11,6 +11,7 @@ import java.time.ZoneId
 import java.time.format.DateTimeParseException
 import java.time.zone.ZoneRulesException
 
+// FIXME extract interface
 object ConfigLoader {
     enum class ConfigKey(val key: String) {
         SLACK_BOT_TOKEN("slack_bot_token"),

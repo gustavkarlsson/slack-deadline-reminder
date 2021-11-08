@@ -14,10 +14,12 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.launch
 import se.gustavkarlsson.slackdeadlinereminder.CommandProcessor
-import se.gustavkarlsson.slackdeadlinereminder.Notifier
+import se.gustavkarlsson.slackdeadlinereminder.ReminderSource
 import se.gustavkarlsson.slackdeadlinereminder.Runner
 import se.gustavkarlsson.slackdeadlinereminder.command.CommandParser
 import se.gustavkarlsson.slackdeadlinereminder.command.CommandParserFailureFormatter
@@ -28,7 +30,7 @@ import com.slack.api.bolt.response.Response as BoltResponse
 
 class KtorRunner(
     private val app: CommandProcessor,
-    private val notifier: Notifier,
+    private val reminderSource: ReminderSource,
     private val commandParser: CommandParser,
     private val commandResponseFormatter: CommandResponseFormatter,
     private val commandParserFailureFormatter: CommandParserFailureFormatter,
@@ -55,17 +57,8 @@ class KtorRunner(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private suspend fun scheduleReminders(): Nothing {
-        val reminderMessages: Flow<OutgoingMessage> = notifier.notifications.map { deadline ->
-            val text = buildString {
-                append("Reminder: ")
-                append("'${deadline.text}'")
-                append(" is due ")
-                append(deadline.date.toString())
-            }
-            OutgoingMessage(deadline.channelId, text)
-        }
         coroutineScope {
-            merge(reminderMessages, commandResponseMessages).collect { message ->
+            merge(reminderSource.reminders, commandResponseMessages).collect { message ->
                 launch {
                     // FIXME handle exceptions
                     methods.chatPostMessage { req ->

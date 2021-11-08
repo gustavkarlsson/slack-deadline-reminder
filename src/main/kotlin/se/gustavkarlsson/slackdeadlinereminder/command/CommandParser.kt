@@ -3,6 +3,7 @@ package se.gustavkarlsson.slackdeadlinereminder.command
 import se.gustavkarlsson.slackdeadlinereminder.models.Command
 import se.gustavkarlsson.slackdeadlinereminder.nlp.NlpDateParser
 
+// FIXME extract interface
 class CommandParser(private val nlpDateParser: NlpDateParser) {
     suspend fun parse(text: String): Result {
         val split = text.trim().split(Regex("\\s+"), limit = 2)
