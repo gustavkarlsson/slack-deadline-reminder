@@ -13,6 +13,12 @@ plugins {
     kotlin("plugin.serialization") version "1.5.31"
 }
 
+tasks.compileKotlin {
+    kotlinOptions {
+        freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"
+    }
+}
+
 group = "se.gustavkarlsson.slack-deadline-reminder"
 version = "0.0.1"
 application {
