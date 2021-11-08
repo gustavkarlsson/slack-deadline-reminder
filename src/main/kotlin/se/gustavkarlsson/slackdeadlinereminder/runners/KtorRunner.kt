@@ -95,8 +95,8 @@ class KtorRunner(
 
     private suspend fun handleSlashCommand(payload: SlashCommandPayload): BoltResponse {
         val command = when (val parseResult = commandParser.parse(payload.text)) {
-            is CommandParser.Result.Success -> parseResult.command
-            is CommandParser.Result.Failure -> {
+            is CommandParser.Success -> parseResult.command
+            is CommandParser.Failure -> {
                 val text = commandParserFailureFormatter.format(parseResult)
                 return BoltResponse.ok(text)
             }

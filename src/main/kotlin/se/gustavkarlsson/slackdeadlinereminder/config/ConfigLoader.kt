@@ -1,3 +1,6 @@
+package se.gustavkarlsson.slackdeadlinereminder.config
+
+import se.gustavkarlsson.slackdeadlinereminder.models.ApplicationConfig
 import se.gustavkarlsson.slackdeadlinereminder.models.DatabaseConfig
 import java.nio.file.InvalidPathException
 import java.nio.file.Paths
@@ -47,7 +50,7 @@ object ConfigLoader {
             else -> DatabaseConfig.InMemory
         }
 
-        ApplicationConfig(
+        val config = ApplicationConfig(
             slackBotToken = slackBotToken,
             slackSigningSecret = slackSigningSecret,
             commandName = commandName,
@@ -58,10 +61,11 @@ object ConfigLoader {
             zoneId = zoneId,
             databaseConfig = databaseConfig,
         )
+        Success(config)
     } catch (e: ValidationException) {
-        InvalidConfigurationValue(e.message)
+        Failure.InvalidConfigurationValue(e.message)
     } catch (e: MissingConfigurationValueException) {
-        MissingConfigurationValue(e.key)
+        Failure.MissingConfigurationValue(e.key)
     }
 
     private operator fun Map<String, String>.get(configKey: ConfigKey, defaultValue: String? = null): String {
@@ -174,19 +178,9 @@ object ConfigLoader {
     }
 
     sealed interface Result
-    data class MissingConfigurationValue(val configKey: ConfigKey) : Result
-    data class InvalidConfigurationValue(val message: String) : Result
+    data class Success(val config: ApplicationConfig) : Result
+    sealed interface Failure : Result {
+        data class MissingConfigurationValue(val configKey: ConfigKey) : Failure
+        data class InvalidConfigurationValue(val message: String) : Failure
+    }
 }
-
-
-data class ApplicationConfig(
-    val slackBotToken: String,
-    val slackSigningSecret: String,
-    val commandName: String,
-    val port: Int,
-    val address: String,
-    val reminderDurations: Set<Duration>,
-    val reminderTime: LocalTime,
-    val zoneId: ZoneId,
-    val databaseConfig: DatabaseConfig,
-) : ConfigLoader.Result

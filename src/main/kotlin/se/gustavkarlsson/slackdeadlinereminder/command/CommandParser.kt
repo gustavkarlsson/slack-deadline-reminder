@@ -15,47 +15,46 @@ class CommandParser(private val nlpDateParser: NlpDateParser) {
         return when (subcommand?.lowercase()) {
             "add" -> {
                 if (argument == null) {
-                    Result.Failure.MissingSubcommandArgument
+                    Failure.MissingSubcommandArgument
                 } else {
                     parseAdd(argument)
                 }
             }
             "remove" -> {
                 if (argument == null) {
-                    Result.Failure.MissingSubcommandArgument
+                    Failure.MissingSubcommandArgument
                 } else {
                     parseRemove(argument)
                 }
             }
-            "list" -> Result.Success(Command.List)
-            else -> Result.Failure.MissingSubcommand
+            "list" -> Success(Command.List)
+            else -> Failure.MissingSubcommand
         }
     }
 
     private suspend fun parseAdd(text: String): Result {
         val command = when (val result = nlpDateParser.parse(text)) {
-            is NlpDateParser.Result.Success -> Command.Insert(result.date, result.remainingText)
-            NlpDateParser.Result.TimeNotFound -> return Result.Failure.MissingTime
+            is NlpDateParser.Success -> Command.Insert(result.date, result.remainingText)
+            NlpDateParser.Failure.TimeNotFound -> return Failure.MissingTime
         }
-        return Result.Success(command)
+        return Success(command)
     }
 
     private fun parseRemove(text: String): Result {
         val id = text.trim().toIntOrNull()
         return if (id != null) {
-            Result.Success(Command.Remove(id))
+            Success(Command.Remove(id))
         } else {
-            Result.Failure.MissingId
+            Failure.MissingId
         }
     }
 
-    sealed interface Result {
-        data class Success(val command: Command) : Result
-        sealed interface Failure : Result {
-            object MissingSubcommand : Failure
-            object MissingSubcommandArgument : Failure
-            object MissingTime : Failure
-            object MissingId : Failure
-        }
+    sealed interface Result
+    data class Success(val command: Command) : Result
+    sealed interface Failure : Result {
+        object MissingSubcommand : Failure
+        object MissingSubcommandArgument : Failure
+        object MissingTime : Failure
+        object MissingId : Failure
     }
 }

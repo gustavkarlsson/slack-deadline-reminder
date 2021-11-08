@@ -65,8 +65,8 @@ class CliRunner(
             }
         }
         val command = when (val parseResult = commandParser.parse(textPart)) {
-            is CommandParser.Result.Success -> parseResult.command
-            is CommandParser.Result.Failure -> {
+            is CommandParser.Success -> parseResult.command
+            is CommandParser.Failure -> {
                 val text = commandParserFailureFormatter.format(parseResult)
                 println(text)
                 return

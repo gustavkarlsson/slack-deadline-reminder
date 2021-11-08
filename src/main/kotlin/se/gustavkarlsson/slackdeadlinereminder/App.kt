@@ -11,6 +11,7 @@ class App(
     private val repository: DeadlineRepository,
     notifier: Notifier,
 ) {
+    // FIXME extract command processor and move Result into it
     suspend fun handleCommand(messageContext: MessageContext, command: Command): Result {
         return when (command) {
             is Command.Insert -> {

@@ -1,12 +1,11 @@
 package se.gustavkarlsson.slackdeadlinereminder
 
-import ApplicationConfig
-import ConfigLoader
 import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import se.gustavkarlsson.slackdeadlinereminder.command.CommandParser
 import se.gustavkarlsson.slackdeadlinereminder.command.CommandParserFailureFormatter
 import se.gustavkarlsson.slackdeadlinereminder.command.CommandResponseFormatter
+import se.gustavkarlsson.slackdeadlinereminder.config.ConfigLoader
 import se.gustavkarlsson.slackdeadlinereminder.models.ChannelId
 import se.gustavkarlsson.slackdeadlinereminder.models.DatabaseConfig
 import se.gustavkarlsson.slackdeadlinereminder.models.MessageContext
@@ -24,12 +23,12 @@ private val logger = KotlinLogging.logger {}
 
 fun main() {
     val config = when (val result = ConfigLoader.loadConfig(System.getenv())) {
-        is ApplicationConfig -> result
-        is ConfigLoader.InvalidConfigurationValue -> {
+        is ConfigLoader.Success -> result.config
+        is ConfigLoader.Failure.InvalidConfigurationValue -> {
             logger.error { "Configuration error: ${result.message}" }
             exitProcess(1)
         }
-        is ConfigLoader.MissingConfigurationValue -> {
+        is ConfigLoader.Failure.MissingConfigurationValue -> {
             logger.error { "Configuration error: environment variable '${result.configKey.key}' is missing" }
             exitProcess(2)
         }

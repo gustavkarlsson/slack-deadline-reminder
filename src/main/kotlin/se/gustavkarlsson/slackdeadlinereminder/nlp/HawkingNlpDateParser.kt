@@ -13,8 +13,8 @@ import java.util.*
 
 class HawkingNlpDateParser(private val clock: Clock) : NlpDateParser {
     override suspend fun parse(text: String): NlpDateParser.Result {
-        val match = findTime(text) ?: return NlpDateParser.Result.TimeNotFound
-        val date = getDate(match) ?: return NlpDateParser.Result.TimeNotFound
+        val match = findTime(text) ?: return NlpDateParser.Failure.TimeNotFound
+        val date = getDate(match) ?: return NlpDateParser.Failure.TimeNotFound
         val replacementSymbol = "\u0000"
         val remainingText = match.recognizerOutputs.fold(text) { acc, output ->
             val replacement = replacementSymbol.repeat(output.text.length)
@@ -27,7 +27,7 @@ class HawkingNlpDateParser(private val clock: Clock) : NlpDateParser {
             .replace(replacementSymbol, "")
             .replace(Regex("\\s+"), " ") // TODO Can we only replace whitespace around replacements?
             .trim()
-        return NlpDateParser.Result.Success(date, remainingText)
+        return NlpDateParser.Success(date, remainingText)
     }
 
     private suspend fun findTime(text: String): ParserOutput? {
