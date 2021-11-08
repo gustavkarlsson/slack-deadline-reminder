@@ -38,9 +38,9 @@ fun main() {
         is DatabaseConfig.JsonFile -> JsonFileRepository(databaseConfig.file, databaseConfig.prettyPrint)
         is DatabaseConfig.Postgres -> ExposedDbRepository(databaseConfig)
     }
-    val reminderSource = ReminderSource(repository, config.reminderTime, config.reminderDurations)
-    val app = CommandProcessor(repository)
     val clock = Clock.system(config.zoneId)
+    val reminderSource = ReminderSource(repository, clock, config.reminderTime, config.reminderDurations)
+    val app = CommandProcessor(repository)
     val nlpDateParser = HawkingNlpDateParser(clock)
     val commandParser = CommandParser(nlpDateParser)
     val commandResponseFormatter = CommandResponseFormatter
