@@ -1,7 +1,5 @@
 package se.gustavkarlsson.slackdeadlinereminder.config
 
-import se.gustavkarlsson.slackdeadlinereminder.models.ApplicationConfig
-import se.gustavkarlsson.slackdeadlinereminder.models.DatabaseConfig
 import java.nio.file.InvalidPathException
 import java.nio.file.Paths
 import java.time.DateTimeException

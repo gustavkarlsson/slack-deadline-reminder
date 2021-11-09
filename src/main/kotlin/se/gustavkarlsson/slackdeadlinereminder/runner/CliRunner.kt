@@ -1,4 +1,4 @@
-package se.gustavkarlsson.slackdeadlinereminder.runners
+package se.gustavkarlsson.slackdeadlinereminder.runner
 
 import edu.stanford.nlp.util.logging.Redwood
 import kotlinx.coroutines.Dispatchers
@@ -6,13 +6,12 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import se.gustavkarlsson.slackdeadlinereminder.CommandProcessor
-import se.gustavkarlsson.slackdeadlinereminder.ReminderSource
-import se.gustavkarlsson.slackdeadlinereminder.Runner
 import se.gustavkarlsson.slackdeadlinereminder.command.CommandParser
 import se.gustavkarlsson.slackdeadlinereminder.command.CommandParserFailureFormatter
+import se.gustavkarlsson.slackdeadlinereminder.command.CommandProcessor
 import se.gustavkarlsson.slackdeadlinereminder.command.CommandResponseFormatter
 import se.gustavkarlsson.slackdeadlinereminder.models.MessageContext
+import se.gustavkarlsson.slackdeadlinereminder.reminder.ReminderSource
 import java.io.OutputStream
 import java.io.PrintStream
 

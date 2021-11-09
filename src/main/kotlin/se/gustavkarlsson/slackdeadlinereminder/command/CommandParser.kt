@@ -1,6 +1,5 @@
 package se.gustavkarlsson.slackdeadlinereminder.command
 
-import se.gustavkarlsson.slackdeadlinereminder.models.Command
 import se.gustavkarlsson.slackdeadlinereminder.nlp.NlpDateParser
 
 // FIXME extract interface

@@ -1,4 +1,4 @@
-package se.gustavkarlsson.slackdeadlinereminder.models
+package se.gustavkarlsson.slackdeadlinereminder.config
 
 import java.time.LocalTime
 import java.time.ZoneId

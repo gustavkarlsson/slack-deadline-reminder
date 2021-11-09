@@ -1,4 +1,4 @@
-package se.gustavkarlsson.slackdeadlinereminder
+package se.gustavkarlsson.slackdeadlinereminder.reminder
 
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*

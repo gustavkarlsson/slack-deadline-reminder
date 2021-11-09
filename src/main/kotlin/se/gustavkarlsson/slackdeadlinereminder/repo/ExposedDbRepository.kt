@@ -6,8 +6,8 @@ import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.javatime.date
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
+import se.gustavkarlsson.slackdeadlinereminder.config.DatabaseConfig
 import se.gustavkarlsson.slackdeadlinereminder.models.ChannelId
-import se.gustavkarlsson.slackdeadlinereminder.models.DatabaseConfig
 import se.gustavkarlsson.slackdeadlinereminder.models.Deadline
 import se.gustavkarlsson.slackdeadlinereminder.models.UserId
 import java.time.LocalDate

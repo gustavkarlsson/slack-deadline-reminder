@@ -1,6 +1,5 @@
-package se.gustavkarlsson.slackdeadlinereminder
+package se.gustavkarlsson.slackdeadlinereminder.command
 
-import se.gustavkarlsson.slackdeadlinereminder.models.Command
 import se.gustavkarlsson.slackdeadlinereminder.models.Deadline
 import se.gustavkarlsson.slackdeadlinereminder.models.MessageContext
 import se.gustavkarlsson.slackdeadlinereminder.repo.DeadlineRepository

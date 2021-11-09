@@ -1,4 +1,4 @@
-package se.gustavkarlsson.slackdeadlinereminder.runners
+package se.gustavkarlsson.slackdeadlinereminder.runner
 
 import com.slack.api.app_backend.slash_commands.payload.SlashCommandPayload
 import com.slack.api.bolt.AppConfig
@@ -16,13 +16,15 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.merge
-import se.gustavkarlsson.slackdeadlinereminder.CommandProcessor
-import se.gustavkarlsson.slackdeadlinereminder.ReminderSource
-import se.gustavkarlsson.slackdeadlinereminder.Runner
 import se.gustavkarlsson.slackdeadlinereminder.command.CommandParser
 import se.gustavkarlsson.slackdeadlinereminder.command.CommandParserFailureFormatter
+import se.gustavkarlsson.slackdeadlinereminder.command.CommandProcessor
 import se.gustavkarlsson.slackdeadlinereminder.command.CommandResponseFormatter
+import se.gustavkarlsson.slackdeadlinereminder.models.ChannelId
+import se.gustavkarlsson.slackdeadlinereminder.models.MessageContext
 import se.gustavkarlsson.slackdeadlinereminder.models.OutgoingMessage
+import se.gustavkarlsson.slackdeadlinereminder.models.UserId
+import se.gustavkarlsson.slackdeadlinereminder.reminder.ReminderSource
 import com.slack.api.bolt.App as BoltApp
 import com.slack.api.bolt.response.Response as BoltResponse
 
@@ -110,3 +112,8 @@ class KtorRunner(
         return BoltResponse.ok(text)
     }
 }
+
+private fun SlashCommandPayload.toMessageContext() = MessageContext(
+    userId = UserId(userId),
+    channelId = ChannelId(channelId),
+)
