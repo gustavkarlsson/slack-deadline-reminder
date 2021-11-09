@@ -12,12 +12,10 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.merge
-import kotlinx.coroutines.launch
 import se.gustavkarlsson.slackdeadlinereminder.CommandProcessor
 import se.gustavkarlsson.slackdeadlinereminder.ReminderSource
 import se.gustavkarlsson.slackdeadlinereminder.Runner
@@ -52,7 +50,9 @@ class KtorRunner(
 
     override suspend fun run(): Nothing = coroutineScope {
         launch { scheduleReminders() }
-        runServer()
+        withContext(Dispatchers.Default) {
+            runServer()
+        }
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
