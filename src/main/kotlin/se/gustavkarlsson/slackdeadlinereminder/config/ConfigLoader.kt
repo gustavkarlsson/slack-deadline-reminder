@@ -5,7 +5,6 @@ import se.gustavkarlsson.slackdeadlinereminder.models.DatabaseConfig
 import java.nio.file.InvalidPathException
 import java.nio.file.Paths
 import java.time.DateTimeException
-import java.time.Duration
 import java.time.LocalTime
 import java.time.ZoneId
 import java.time.format.DateTimeParseException
@@ -57,7 +56,7 @@ object ConfigLoader {
             commandName = commandName,
             port = port,
             address = address,
-            reminderDurations = reminderDays,
+            reminderDays = reminderDays,
             reminderTime = reminderTime,
             zoneId = zoneId,
             databaseConfig = databaseConfig,
@@ -102,21 +101,20 @@ object ConfigLoader {
         return ifBlank { failValidation("Invalid address '$this'") }
     }
 
-    private fun String.validateReminderDays(): Set<Duration> {
+    private fun String.validateReminderDays(): Set<Int> {
         if (isBlank()) failValidation("Invalid reminder days '$this'")
         val reminderDays = split(',')
             .map {
                 try {
-                    it.trim().toLong()
+                    it.trim().toInt()
                 } catch (t: Throwable) {
                     failValidation("Invalid day '$it'", t)
                 }
             }
             .onEach { if (it < 0) failValidation("Reminder days cannot be negative '$it'") }
-            .map { Duration.ofDays(it) }
             .toSet()
 
-        return reminderDays + Duration.ZERO
+        return reminderDays
     }
 
     private fun String.validateReminderTime(): LocalTime {

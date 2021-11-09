@@ -39,7 +39,7 @@ fun main() {
         is DatabaseConfig.Postgres -> ExposedDbRepository(databaseConfig)
     }
     val clock = Clock.system(config.zoneId)
-    val reminderSource = ReminderSource(repository, clock, config.reminderTime, config.reminderDurations)
+    val reminderSource = ReminderSource(repository, clock, config.reminderTime, config.reminderDays)
     val app = CommandProcessor(repository)
     val nlpDateParser = HawkingNlpDateParser(clock)
     val commandParser = CommandParser(nlpDateParser)

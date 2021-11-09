@@ -6,7 +6,7 @@ import se.gustavkarlsson.slackdeadlinereminder.models.Deadline
 import se.gustavkarlsson.slackdeadlinereminder.models.OutgoingMessage
 import se.gustavkarlsson.slackdeadlinereminder.repo.DeadlineRepository
 import java.time.Clock
-import java.time.Duration
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.temporal.ChronoUnit
@@ -16,7 +16,7 @@ class ReminderSource(
     private val repository: DeadlineRepository,
     private val clock: Clock,
     private val reminderTime: LocalTime,
-    reminderDurations: Set<Duration>,
+    private val reminderDays: Set<Int>,
 ) {
     val reminders: Flow<OutgoingMessage> = flow {
         if (missedTodaysReminders) {
@@ -30,19 +30,20 @@ class ReminderSource(
 
     private val missedTodaysReminders: Boolean
         get() {
-            val currentTimeOfDay = LocalTime.now(clock)
-            return currentTimeOfDay.isAfter(reminderTime)
+            val now = LocalTime.now(clock)
+            return now.isAfter(reminderTime)
         }
 
     private suspend fun FlowCollector<OutgoingMessage>.emitReminders() {
-        val messages = getReminderMessages(repository.list())
+        val today = LocalDate.now(clock)
+        val messages = getReminderMessages(repository.list(), reminderDays, today)
         emitAll(messages.asFlow())
     }
 
     private val timeUntilNextReminder: Long
         get() {
-            val currentTime = LocalDateTime.now(clock)
-            return getTimeUntilNextReminder(currentTime, reminderTime)
+            val now = LocalDateTime.now(clock)
+            return getTimeUntilNextReminder(now, reminderTime)
         }
 }
 
@@ -58,9 +59,13 @@ private fun getTimeUntilNextReminder(now: LocalDateTime, reminderTime: LocalTime
     return now.until(nextReminderTime, ChronoUnit.MILLIS)
 }
 
-private fun getReminderMessages(deadlines: List<Deadline>): List<OutgoingMessage> {
+private fun getReminderMessages(
+    deadlines: List<Deadline>,
+    reminderDays: Set<Int>,
+    today: LocalDate
+): List<OutgoingMessage> {
     return deadlines
-        .filter(::shouldRemind)
+        .filter { shouldRemind(reminderDays, it.date, today) }
         .groupBy { it.channelId }
         .mapValues { (_, deadlines) ->
             deadlines.sortedBy { it.date }
@@ -79,16 +84,15 @@ private fun getReminderMessages(deadlines: List<Deadline>): List<OutgoingMessage
         }
 }
 
-private fun shouldRemind(deadline: Deadline): Boolean {
-    TODO("FIXME implement")
-}
-
-private fun Deadline.toMessage(): OutgoingMessage {
-    val text = buildString {
-        append("Reminder: ")
-        append("'${text}'")
-        append(" is due ")
-        append(date.toString())
+private fun shouldRemind(reminderDays: Set<Int>, deadlineDate: LocalDate, today: LocalDate): Boolean {
+    val reminderDates = reminderDays
+        .map { daysDelta ->
+            deadlineDate.minusDays(daysDelta.toLong())
+        }
+    return when {
+        deadlineDate.isBefore(today) -> true
+        deadlineDate == today -> true
+        deadlineDate in reminderDates -> true
+        else -> false
     }
-    return OutgoingMessage(channelId, text)
 }
