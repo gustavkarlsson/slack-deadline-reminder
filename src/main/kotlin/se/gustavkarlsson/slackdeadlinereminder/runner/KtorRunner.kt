@@ -16,6 +16,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.merge
+import mu.KotlinLogging
 import se.gustavkarlsson.slackdeadlinereminder.command.CommandParser
 import se.gustavkarlsson.slackdeadlinereminder.command.CommandParserFailureFormatter
 import se.gustavkarlsson.slackdeadlinereminder.command.CommandProcessor
@@ -28,6 +29,8 @@ import se.gustavkarlsson.slackdeadlinereminder.reminder.ReminderSource
 import com.slack.api.bolt.App as BoltApp
 import com.slack.api.bolt.response.Response as BoltResponse
 
+private val logger = KotlinLogging.logger {}
+
 class KtorRunner(
     private val app: CommandProcessor,
     private val reminderSource: ReminderSource,
@@ -38,6 +41,7 @@ class KtorRunner(
     private val port: Int,
     slackBotToken: String,
     slackSigningSecret: String,
+    private val sendDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) : Runner {
     private val boltApp = let {
         val appConfig = AppConfig.builder()
@@ -51,26 +55,33 @@ class KtorRunner(
     private val commandResponseMessages = MutableSharedFlow<OutgoingMessage>(extraBufferCapacity = 8)
 
     override suspend fun run(): Nothing = coroutineScope {
-        launch { scheduleReminders() }
-        withContext(Dispatchers.Default) {
-            runServer()
+        launch(sendDispatcher) {
+            sendOutgoingMessages()
         }
+        runServer()
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private suspend fun scheduleReminders(): Nothing {
+    private suspend fun sendOutgoingMessages(): Nothing {
         coroutineScope {
             merge(reminderSource.reminders, commandResponseMessages).collect { message ->
-                launch {
-                    // FIXME handle exceptions
-                    methods.chatPostMessage { req ->
-                        req.channel(message.channelId.value)
-                            .text(message.text)
+                launch(sendDispatcher) {
+                    try {
+                        post(message)
+                    } catch (e: Exception) {
+                        logger.error("Failed to post message", e)
                     }
                 }
             }
+            error("Collection finished unexpectedly")
         }
-        error("Collection finished unexpectedly")
+    }
+
+    private fun post(message: OutgoingMessage) {
+        methods.chatPostMessage { req ->
+            req.channel(message.channelId.value)
+                .text(message.text)
+        }
     }
 
     private fun runServer(): Nothing {
