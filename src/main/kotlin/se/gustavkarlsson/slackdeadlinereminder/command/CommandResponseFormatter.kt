@@ -6,13 +6,17 @@ import se.gustavkarlsson.slackdeadlinereminder.CommandProcessor
 object CommandResponseFormatter {
     fun format(result: CommandProcessor.Result): String = when (result) {
         is CommandProcessor.Deadlines -> {
-            buildString {
-                append("Deadlines:")
-                val padLength = result.deadlines.maxOf { it.id.toString().length } + 1
-                for (deadline in result.deadlines) {
-                    appendLine()
-                    append(deadline.id.toString().padEnd(padLength))
-                    append("| '${deadline.text}' is due ${deadline.date}") // Extract to shared formatter (shared with ReminderSource)
+            if (result.deadlines.isEmpty()) {
+                "There are no deadlines"
+            } else {
+                buildString {
+                    append("Deadlines:")
+                    val padLength = result.deadlines.maxOf { it.id.toString().length } + 1
+                    for (deadline in result.deadlines) {
+                        appendLine()
+                        append(deadline.id.toString().padEnd(padLength))
+                        append("| '${deadline.text}' is due ${deadline.date}") // Extract to shared formatter (shared with ReminderSource)
+                    }
                 }
             }
         }

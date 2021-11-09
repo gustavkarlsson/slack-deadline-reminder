@@ -72,7 +72,7 @@ private fun getReminderMessages(
         }
         .map { (channelId, deadlines) ->
             val text = buildString {
-                append("Reminder:")
+                append("Deadlines:")
                 val padLength = deadlines.maxOf { it.id.toString().length } + 1
                 for (deadline in deadlines) {
                     appendLine()
