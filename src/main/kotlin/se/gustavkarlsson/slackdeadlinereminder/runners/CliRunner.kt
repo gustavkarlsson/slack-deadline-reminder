@@ -1,9 +1,11 @@
 package se.gustavkarlsson.slackdeadlinereminder.runners
 
 import edu.stanford.nlp.util.logging.Redwood
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import se.gustavkarlsson.slackdeadlinereminder.CommandProcessor
 import se.gustavkarlsson.slackdeadlinereminder.ReminderSource
 import se.gustavkarlsson.slackdeadlinereminder.Runner
@@ -27,13 +29,15 @@ class CliRunner(
     override suspend fun run() = coroutineScope {
         disableNlpLogging()
         launch { scheduleReminders() }
-        do {
-            print("> ")
-            val line = readLine()
-            if (line != null) {
-                processLine(line)
-            }
-        } while (line != null)
+        withContext(Dispatchers.Default) {
+            do {
+                print("> ")
+                val line = readLine()
+                if (line != null) {
+                    processLine(line)
+                }
+            } while (line != null)
+        }
     }
 
     private fun disableNlpLogging() {
