@@ -1,3 +1,6 @@
+import org.gradle.api.tasks.testing.logging.TestLogEvent.*
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 val ktor_version: String by project
 val bolt_version: String by project
 val kotlin_version: String by project
@@ -9,8 +12,8 @@ val postgres_version: String by project
 
 plugins {
     application
-    kotlin("jvm") version "1.5.31"
-    kotlin("plugin.serialization") version "1.5.31"
+    kotlin("jvm") version "1.6.0"
+    kotlin("plugin.serialization") version "1.6.0"
 }
 
 group = "se.gustavkarlsson.slack-deadline-reminder"
@@ -25,7 +28,8 @@ repositories {
 
 dependencies {
     // Coroutines
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_version")
+    implementation(platform("org.jetbrains.kotlinx:kotlinx-coroutines-bom:$coroutines_version"))
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core")
 
     // Ktor
     implementation("io.ktor:ktor-server-core:$ktor_version")
@@ -55,4 +59,18 @@ dependencies {
     // Testing
     testImplementation("io.ktor:ktor-server-tests:$ktor_version")
     testImplementation("org.jetbrains.kotlin:kotlin-test:$kotlin_version")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test")
+    testImplementation("org.testcontainers:postgresql:1.16.2")
+    testImplementation("org.testcontainers:junit-jupiter:1.16.2")
+}
+
+tasks.withType<Test> {
+    useJUnitPlatform()
+    testLogging {
+        events = setOf(PASSED, SKIPPED, FAILED)
+    }
+}
+
+tasks.withType<KotlinCompile>().configureEach {
+    kotlinOptions.freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
 }

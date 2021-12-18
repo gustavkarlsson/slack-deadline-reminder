@@ -75,7 +75,7 @@ class ExposedDbRepository(
         val database = DatabaseConnections[config]
         return newSuspendedTransaction(dispatcher, database) {
             if (shouldTryCreateTable.getAndSet(false)) {
-                if (DeadlinesTable.exists()) {
+                if (!DeadlinesTable.exists()) {
                     SchemaUtils.create(DeadlinesTable)
                 }
             }
